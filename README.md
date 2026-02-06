@@ -1,7 +1,7 @@
 # AAC-App-CPSC-491
 
-An **AAC (Augmentative and Alternative Communication)** desktop-friendly web app prototype built for **CPSC 491**.  
-The goal of this project is to explore a clean, user-friendly AAC interface that helps people with speech difficulties communicate more easily.
+An **AAC (Augmentative and Alternative Communication)** desktop-friendly web app prototype for **CPSC 491**.  
+The goal of this project is to explore a clean, user-friendly AAC interface that helps chilren with autism and speech difficulties communicate more easily.
 
 ## What it does (so far)
 - Working **Vite + React** project
@@ -37,7 +37,7 @@ Text-to-speech integration (TTS)
 
 Keyboard + accessibility-friendly UI (large targets, clear contrast)
 
-
+```bash
 ==FOR GROUPMATES==
 1) Install prerequisites (one-time)
 - Install **Node.js (LTS)**: https://nodejs.org
@@ -45,7 +45,6 @@ Keyboard + accessibility-friendly UI (large targets, clear contrast)
 - Install **VS Code**: https://code.visualstudio.com
 
 Verify installs:
-```bash
 node -v
 npm -v
 git --version
