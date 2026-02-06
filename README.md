@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# AAC-App-CPSC-491
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An **AAC (Augmentative and Alternative Communication)** desktop-friendly web app prototype built for **CPSC 491**.  
+The goal of this project is to explore a clean, user-friendly AAC interface that helps people with speech difficulties communicate more easily.
 
-Currently, two official plugins are available:
+## What it does (so far)
+- Working **Vite + React** project
+- **Home screen** with navigation
+- **Placeholder pages** for main sections (Search, Favorites, Talk, Therapy, Profile, Settings)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Tech Stack
+- **React + TypeScript**
+- **Vite**
+- **React Router**
+- CSS (simple styling for now)
 
-## React Compiler
+## Pages / Routes
+- `/` Home
+- `/search`
+- `/favorites`
+- `/talk`
+- `/therapy`
+- `/profile`
+- `/settings`
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Getting Started
+1. Install dependencies:
+   ```bash
+   n
+Planned Features
 
-## Expanding the ESLint configuration
+AAC “talking interface” page with selectable word/phrase tiles
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Favorites system for commonly used phrases
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Search for phrases/tiles
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Profiles (user preferences, saved phrases)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Text-to-speech integration (TTS)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Keyboard + accessibility-friendly UI (large targets, clear contrast)
