@@ -8,16 +8,16 @@ export default function Home() {
     <div className="home">
       <div className="home-card">
         <div className="home-header">
-          <h1>Welcome!</h1>
+          <h1>Welcome To AAC Talker!</h1>
           <p>Select where you want to go.</p>
         </div>
 
         <div className="home-grid">
-          <button className="home-btn" onClick={() => navigate("/search")}>
+          <button className="home-btn search" onClick={() => navigate("/search")}>
             Search
           </button>
 
-          <button className="home-btn" onClick={() => navigate("/favorites")}>
+          <button className="home-btn favorites" onClick={() => navigate("/favorites")}>
             Favorites
           </button>
 
@@ -25,17 +25,17 @@ export default function Home() {
             Let’s Talk
           </button>
 
-          <button className="home-btn" onClick={() => navigate("/therapy")}>
+          <button className="home-btn therapy" onClick={() => navigate("/therapy")}>
             Therapy
           </button>
 
-          <button className="home-btn" onClick={() => navigate("/profile")}>
+          <button className="home-btn profile" onClick={() => navigate("/profile")}>
             Profile
           </button>
         </div>
 
         <div className="home-footer">
-          <button className="home-btn" onClick={() => navigate("/settings")}>
+          <button className="home-btn footer" onClick={() => navigate("/settings")}>
             Settings
           </button>
         </div>
