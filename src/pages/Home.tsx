@@ -21,7 +21,7 @@ export default function Home() {
             Favorites
           </button>
 
-          <button className="home-btn primary" onClick={() => navigate("/talk")}>
+          <button className="btn btn-primary home-btn-primary" onClick={() => navigate("/talk")}>
             Let’s Talk
           </button>
 

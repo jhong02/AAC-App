@@ -34,17 +34,17 @@ body{
   -webkit-text-stroke: 2.5px #ffffff;
   */
   grid-column: 1 / -1;
-  background: #9574ff;
+  /* background: #9574ff; */
   border: 10px solid #ffffff;
   border-radius: 90px;
   box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
-  color: #8667ee;
+  /* color: #8667ee; */
   font-size: 64px;
   padding: 22px 20px;
   -webkit-text-stroke: 2.5px #ffffff;
 }
 
-.home-btn.primary:hover {
+.btn-primary:hover {
   background: #4338ca;
 }
 

@@ -101,7 +101,12 @@
   background: #a77bcc;
 }
 
-.home-btn.primary {
+
+/*.home-btn-primary { */
+.btn.btn-primary.home-btn-primary {
+  background: #9574ff;
+  color: #8667ee;
+  /*
   grid-column: 1 / -1;
   background: #9574ff;
   border: 10px solid #ffffff;
@@ -111,11 +116,13 @@
   font-size: 64px;
   padding: 22px 20px;
   -webkit-text-stroke: 2.5px #ffffff;
+  */
 }
 
-.home-btn.primary:hover {
+.btn.btn-primary.home-btn-primary:hover {
   background: #4338ca;
 }
+
 
 .home-btn.therapy {
   background: #6ee0ac;
