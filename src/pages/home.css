@@ -117,7 +117,7 @@
   background: #4338ca;
 }
 
-.home-btn.therapy {
+.home-btn.userConfig {
   background: #6ee0ac;
   border: 7px solid #ffffff;
   border-radius: 60px;
@@ -128,7 +128,7 @@
   -webkit-text-stroke: 0.75px #ffffff;
 }
 
-.home-btn.therapy:hover {
+.home-btn.userConfig:hover {
   background: #4fb185;
 }
 

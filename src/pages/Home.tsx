@@ -25,8 +25,8 @@ export default function Home() {
             Let’s Talk
           </button>
 
-          <button className="home-btn therapy" onClick={() => navigate("/therapy")}>
-            Therapy
+          <button className="home-btn userConfig" onClick={() => navigate("/userConfig")}>
+            User Configuration
           </button>
 
           <button className="home-btn profile" onClick={() => navigate("/profile")}>
