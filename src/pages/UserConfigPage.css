@@ -1,0 +1,25 @@
+.userConfig {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.userConfig-card {
+  text-align: center;
+}
+
+.userConfig-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.userConfig-btn {
+  width: 150px;
+  height: 60px;
+  font-size: 18px;
+  border-radius: 10px;
+  cursor: pointer;
+}
