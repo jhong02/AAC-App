@@ -31,14 +31,50 @@
 .home-header h1 {
   margin: 0;
   font-size: 40px;
-  color: #111827;
+  color: #ffcf4d;
+
+  text-shadow:
+    0 0 0 white,
+    1px 1px 0 white,
+   -1px 1px 0 white,
+    1px -1px 0 white,
+   -1px -1px 0 white,
+    2px 2px 0 white,
+   -2px 2px 0 white,
+    2px -2px 0 white,
+   -2px -2px 0 white;
 }
 
 .home-header p {
   margin: 8px 0 0;
-  font-size: 18px;
-  color: #4b5563;
+  font-size: 26px;
+  color: #ffcf4d;
+
+  text-shadow:
+    0 0 0 white,
+    1px 1px 0 white,
+   -1px 1px 0 white,
+    1px -1px 0 white,
+   -1px -1px 0 white,
+    2px 2px 0 white,
+   -2px 2px 0 white,
+    2px -2px 0 white,
+   -2px -2px 0 white;
 }
+
+
+.cloud1 {
+  top: 50px;
+  left: 50px;
+}
+
+.cloud2 {
+  top: 120px;
+  right: 90px;
+  transform: scale(1.4);
+  transform: scaleX(-1);
+}
+
 
 .home-grid {
   width: min(900px, 92vw);
@@ -71,52 +107,10 @@
   transform: translateY(1px);
 }
 
-.home-btn.search {
-  background: #ff9f82;
-  border: 7px solid #ffffff;
-  border-radius: 60px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
-  color: #ee8c6e;
-  font-size: 40px;
-  padding: 18px 16px;
-  -webkit-text-stroke: 0.75px #ffffff;
-}
 
-.home-btn.search:hover {
-  background: #d3795d;
-}
-
-.home-btn.favorites {
-  background: #d4a8f9;
-  border: 7px solid #ffffff;
-  border-radius: 60px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
-  color: #c395e9;
-  font-size: 40px;
-  padding: 18px 16px;
-  -webkit-text-stroke: 0.75px #ffffff;
-}
-
-.home-btn.favorites:hover {
-  background: #a77bcc;
-}
-
-
-/*.home-btn-primary { */
 .btn.btn-primary.home-btn-primary {
   background: #9574ff;
   color: #8667ee;
-  /*
-  grid-column: 1 / -1;
-  background: #9574ff;
-  border: 10px solid #ffffff;
-  border-radius: 90px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
-  color: #8667ee;
-  font-size: 64px;
-  padding: 22px 20px;
-  -webkit-text-stroke: 2.5px #ffffff;
-  */
 }
 
 .btn.btn-primary.home-btn-primary:hover {
@@ -124,65 +118,22 @@
 }
 
 
-.home-btn.therapy {
+.btn.btn-secondary.stats-btn {
   background: #6ee0ac;
-  border: 7px solid #ffffff;
-  border-radius: 60px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
   color: #62cf9e;
-  font-size: 40px;
-  padding: 18px 16px;
-  -webkit-text-stroke: 0.75px #ffffff;
 }
 
-.home-btn.therapy:hover {
+.btn.btn-secondary.stats-btn:hover {
   background: #4fb185;
 }
 
-.home-btn.profile {
+.btn.btn-secondary.config-btn {
   background: #ffaf2d;
-  border: 7px solid #ffffff;
-  border-radius: 60px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
   color: #eea32a;
-  font-size: 40px;
-  padding: 18px 16px;
-  -webkit-text-stroke: 0.75px #ffffff;
 }
 
-.home-btn.profile:hover {
+.btn.btn-secondary.config-btn:hover {
   background: #e79c22;
 }
 
-
-
-.home-footer {
-  width: min(900px, 92vw);
-  margin: 0 auto;
-  display: flex;
-  justify-content: flex-end;
-}
-
-
-/*
-.home-btn.footer {
-  width: min(900px, 92vw);
-  margin: 0 auto;
-  display: flex;
-  justify-content: flex-end;
-
-  background: #35a3fd;
-  border: 7px solid #ffffff;
-  border-radius: 60px;
-  box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
-  color: #3098ee;
-  font-size: 40px;
-  padding: 18px 16px;
-  -webkit-text-stroke: 0.75px #ffffff;
-}
-
-.home-btn.footer:hover {
-  background: #2a80d0;
-}
-*/
 

@@ -9,36 +9,29 @@ export default function Home() {
       <div className="home-card">
         <div className="home-header">
           <h1>Welcome To AAC Talker!</h1>
-          <p>Select where you want to go.</p>
+          <p>Select where you would like to go</p>
+        </div>
+
+        <div className="cloud cloud1">
+        </div>
+        <div className="cloud cloud2">
         </div>
 
         <div className="home-grid">
-          <button className="home-btn search" onClick={() => navigate("/search")}>
-            Search
-          </button>
-
-          <button className="home-btn favorites" onClick={() => navigate("/favorites")}>
-            Favorites
-          </button>
 
           <button className="btn btn-primary home-btn-primary" onClick={() => navigate("/talk")}>
             Let’s Talk
           </button>
 
-          <button className="home-btn therapy" onClick={() => navigate("/therapy")}>
-            Therapy
+          <button className="btn btn-secondary stats-btn" onClick={() => navigate("/therapy")}>
+            Statistics
           </button>
 
-          <button className="home-btn profile" onClick={() => navigate("/profile")}>
-            Profile
+          <button className="btn btn-secondary config-btn" onClick={() => navigate("/profile")}>
+            Configuration
           </button>
         </div>
 
-        <div className="home-footer">
-          <button className="home-btn footer" onClick={() => navigate("/settings")}>
-            Settings
-          </button>
-        </div>
       </div>
     </div>
   );
