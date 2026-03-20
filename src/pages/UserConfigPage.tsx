@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-
+import "./UserConfigPage.css";
 
 export default function UserConfigPage(){
     const navigate = useNavigate();
