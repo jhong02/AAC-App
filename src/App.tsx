@@ -13,7 +13,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
 
       <Route path="/talk" element={<TalkPage />} />
-      <Route path="/userConfig" element={<UserConfigPage />} />
+      <Route path="/user-config" element={<UserConfigPage />} />
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/audio" element={<AudioPage />} />

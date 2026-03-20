@@ -27,7 +27,7 @@ export default function Home() {
             Statistics
           </button>
 
-          <button className="btn btn-secondary config-btn text-outline" onClick={() => navigate("/profile")}>
+          <button className="btn btn-secondary config-btn text-outline" onClick={() => navigate("/user-config")}>
             Configuration
           </button>
         </div>
