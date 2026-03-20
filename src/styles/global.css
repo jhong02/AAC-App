@@ -31,17 +31,6 @@ body{
   box-shadow: 0px 8px 20px rgba(0,0,0,0.5);
   font-size: 64px;
   padding: 22px 20px;
-
-  text-shadow:
-    0 0 0 white,
-    1px 1px 0 white,
-   -1px 1px 0 white,
-    1px -1px 0 white,
-   -1px -1px 0 white,
-    2px 2px 0 white,
-   -2px 2px 0 white,
-    2px -2px 0 white,
-   -2px -2px 0 white;
 }
 
 .btn-primary:hover {
@@ -57,17 +46,6 @@ body{
   color: #62cf9e;
   font-size: 40px;
   padding: 18px 16px;
-
-  text-shadow:
-    0 0 0 white,
-    1px 1px 0 white,
-   -1px 1px 0 white,
-    1px -1px 0 white,
-   -1px -1px 0 white,
-    2px 2px 0 white,
-   -2px 2px 0 white,
-    2px -2px 0 white,
-   -2px -2px 0 white;
 }
 
 .btn-secondary:hover {
@@ -91,5 +69,14 @@ body{
   opacity: 0.9;
 }
 
-
-
+.text-outline {
+  text-shadow:
+    1px  1px 0 white,
+   -1px  1px 0 white,
+    1px -1px 0 white,
+   -1px -1px 0 white,
+    0px  2px 0 white,
+    2px  0px 0 white,
+   -2px  0px 0 white,
+    0px -2px 0 white;
+}

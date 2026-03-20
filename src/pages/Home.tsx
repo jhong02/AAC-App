@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className="home">
       <div className="home-card">
-        <div className="home-header">
+        <div className="home-header text-outline">
           <h1>Welcome To AAC Talker!</h1>
           <p>Select where you would like to go</p>
         </div>
@@ -19,15 +19,15 @@ export default function Home() {
 
         <div className="home-grid">
 
-          <button className="btn btn-primary home-btn-primary" onClick={() => navigate("/talk")}>
+          <button className="btn btn-primary home-btn-primary text-outline" onClick={() => navigate("/talk")}>
             Let’s Talk
           </button>
 
-          <button className="btn btn-secondary stats-btn" onClick={() => navigate("/therapy")}>
+          <button className="btn btn-secondary stats-btn text-outline" onClick={() => navigate("/therapy")}>
             Statistics
           </button>
 
-          <button className="btn btn-secondary config-btn" onClick={() => navigate("/profile")}>
+          <button className="btn btn-secondary config-btn text-outline" onClick={() => navigate("/profile")}>
             Configuration
           </button>
         </div>
