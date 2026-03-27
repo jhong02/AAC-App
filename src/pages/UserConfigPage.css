@@ -42,3 +42,15 @@
   background-color: #e39090;
   color: #643333;
 }
+
+.cloud1 {
+  top: 20%;
+  left: 87%;
+  transform: scaleX(-1) scale(1.15);
+}
+
+.cloud2 {
+  top: 85%;
+  left: 5%;
+  transform: scaleX(1) scale(0.90);
+}

@@ -11,6 +11,11 @@ export default function UserConfigPage(){
           <h1>Configure Your Patient's User Profile</h1>
         </div>
 
+      <div className="cloud cloud1">
+        </div>
+      <div className="cloud cloud2">
+        </div>
+
         <div className="userConfig-grid">
           <button className="btn btn-secondary btn-userConfig-audio" onClick={() => navigate("/audio")}>
             Audio
