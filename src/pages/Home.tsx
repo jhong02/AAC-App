@@ -16,6 +16,8 @@ export default function Home() {
         </div>
         <div className="cloud cloud2">
         </div>
+        <div className="cloud cloud3">
+        </div>
 
         <div className="home-grid">
 
@@ -23,7 +25,7 @@ export default function Home() {
             Let’s Talk
           </button>
 
-          <button className="btn btn-secondary stats-btn text-outline" onClick={() => navigate("/therapy")}>
+          <button className="btn btn-secondary stats-btn text-outline" onClick={() => navigate("/stats")}>
             Statistics
           </button>
 

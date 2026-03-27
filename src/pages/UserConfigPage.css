@@ -16,10 +16,29 @@
   margin-top: 30px;
 }
 
+/*
 .userConfig-btn {
   width: 150px;
   height: 60px;
   font-size: 18px;
   border-radius: 10px;
   cursor: pointer;
+}
+*/
+
+.userConfig-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-top: 30px;
+}
+
+.btn.btn-secondary.btn-userConfig-audio {
+  background-color: #aca9ee;
+  color: #464384;
+}
+
+.btn.btn-secondary.btn-userConfig-grid {
+  background-color: #e39090;
+  color: #643333;
 }
