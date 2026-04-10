@@ -1,0 +1,241 @@
+/* ─── Audio Page Layout ─────────────────────────────────────────── */
+.audio-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  background: #b8f0a9;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative cloud overrides (reuse .cloud from global.css) */
+.audio-page .cloud1 { top: 30px; left: 40px; }
+.audio-page .cloud2 { top: 100px; right: 60px; transform: scaleX(-1); }
+
+/* ─── Card ──────────────────────────────────────────────────────── */
+.audio-card {
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Header ────────────────────────────────────────────────────── */
+.audio-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.audio-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffcf4d;
+  flex: 1;
+  text-align: center;
+}
+
+.audio-back-btn {
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.audio-back-btn:hover {
+  background: #e5e7eb;
+}
+
+/* ─── Section Block ─────────────────────────────────────────────── */
+.audio-section {
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.audio-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.audio-section-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+/* ─── Value Badge ───────────────────────────────────────────────── */
+.audio-value-badge {
+  margin-left: auto;
+  background: #6ee0ac;
+  color: white;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: 20px;
+  min-width: 70px;
+  text-align: center;
+}
+
+/* ─── Slider ────────────────────────────────────────────────────── */
+.audio-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  border: none;
+}
+
+/* Volume slider — green track */
+.volume-slider {
+  background: linear-gradient(to right, #6ee0ac 0%, #6ee0ac var(--val, 80%), #d1fae5 var(--val, 80%), #d1fae5 100%);
+}
+
+/* Speed slider — purple/blue track */
+.speed-slider {
+  background: linear-gradient(to right, #a78bfa 0%, #a78bfa var(--val, 50%), #ede9fe var(--val, 50%), #ede9fe 100%);
+}
+
+/* Thumb styling */
+.audio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #6ee0ac;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.speed-slider::-webkit-slider-thumb {
+  border-color: #a78bfa;
+}
+
+.audio-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.audio-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: white;
+  border: 3px solid #6ee0ac;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+
+.speed-slider::-moz-range-thumb {
+  border-color: #a78bfa;
+}
+
+/* Tick labels */
+.audio-slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+  padding: 0 2px;
+}
+
+/* ─── Voice Selection ───────────────────────────────────────────── */
+.audio-placeholder-tag {
+  margin-left: auto;
+  background: #fde68a;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.voice-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.voice-option-btn {
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: not-allowed;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  opacity: 0.7;
+}
+
+.voice-option-btn.selected {
+  background: #ede9fe;
+  border-color: #a78bfa;
+  color: #5b21b6;
+}
+
+.audio-placeholder-note {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+  font-style: italic;
+  text-align: center;
+}
+
+/* ─── Save Button ───────────────────────────────────────────────── */
+.audio-save-btn {
+  background: #6ee0ac;
+  border: 4px solid white;
+  border-radius: 60px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  color: white;
+  font-size: 20px;
+  font-weight: 800;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.06s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.audio-save-btn:hover {
+  background: #4fb185;
+  transform: translateY(-1px);
+}
+
+.audio-save-btn:active {
+  transform: translateY(1px);
+}
