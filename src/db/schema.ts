@@ -1,5 +1,7 @@
 /**
  * schema.ts
+ * 
+ * Author: Christian Beshara
  * AA-19 Subtask AA-75: Choose a local storage solution 
  *                    (SQLite) and define the data models needed for 
  *                     vocabulary, profiles, tokens, and session logs.
