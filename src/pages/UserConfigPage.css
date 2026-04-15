@@ -34,8 +34,8 @@
 }
 
 .btn.btn-secondary.btn-userConfig-audio {
-  background-color: #aca9ee;
-  color: #464384;
+  background-color: #ffcf4d;
+  color: #af7c0c;
 }
 
 .btn.btn-secondary.btn-userConfig-grid {
@@ -53,4 +53,10 @@
   top: 85%;
   left: 5%;
   transform: scaleX(1) scale(0.90);
+}
+
+.btn.btn-secondary.back-btn {
+  background: #9fe6a6;
+  font-size: 20px;
+  color: #474747;
 }

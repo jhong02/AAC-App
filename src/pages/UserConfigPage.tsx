@@ -19,17 +19,21 @@ export default function UserConfigPage(){
 
         <div className="userConfig-grid">
           <button className="btn btn-secondary btn-userConfig-audio" onClick={() => navigate("/audio")}>
-            Audio
+            Audio Settings
           </button>
 
           <button className="btn btn-secondary btn-userConfig-grid" onClick={() => navigate("/grid")}>
-            Grid
+            Grid Settings
           </button>
 
-          <Link to="/" className="back">
-             ← Back Home
-          </Link>
+          
         </div>
+
+        <br />
+
+        <button className="btn btn-secondary back-btn" onClick={() => navigate("/")}>
+            ← Back To Home
+          </button>
 
       </div>
     </div>
