@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./UserConfigPage.css";
+import { Link } from "react-router-dom";
 
 export default function UserConfigPage(){
     const navigate = useNavigate();
@@ -24,6 +25,10 @@ export default function UserConfigPage(){
           <button className="btn btn-secondary btn-userConfig-grid" onClick={() => navigate("/grid")}>
             Grid
           </button>
+
+          <Link to="/" className="back">
+             ← Back Home
+          </Link>
         </div>
 
       </div>
