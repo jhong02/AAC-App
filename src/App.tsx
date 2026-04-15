@@ -1,7 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import TalkPage from "./pages/TalkPage";
-import ProfilePage from "./pages/ProfilePage";
+import StatsPage from "./pages/StatsPage";
 import SettingsPage from "./pages/SettingsPage";
 import UserConfigPage from "./pages/UserConfigPage";
 import AudioPage from "./pages/AudioPage";
@@ -14,7 +14,7 @@ export default function App() {
 
       <Route path="/talk" element={<TalkPage />} />
       <Route path="/user-config" element={<UserConfigPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/stats" element={<StatsPage />} />
       <Route path="/settings" element={<SettingsPage />} />
       <Route path="/audio" element={<AudioPage />} />
       <Route path="grid" element={<GridPage/>} />

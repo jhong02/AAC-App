@@ -16,14 +16,15 @@ export default function Home() {
         </div>
         <div className="cloud cloud2">
         </div>
+        
 
         <div className="home-grid">
 
           <button className="btn btn-primary home-btn-primary text-outline" onClick={() => navigate("/talk")}>
-            Let’s Talk
+            Let’s Talk!
           </button>
 
-          <button className="btn btn-secondary stats-btn text-outline" onClick={() => navigate("/therapy")}>
+          <button className="btn btn-secondary stats-btn text-outline" onClick={() => navigate("/stats")}>
             Statistics
           </button>
 

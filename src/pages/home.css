@@ -42,15 +42,22 @@
 
 
 .cloud1 {
-  top: 50px;
-  left: 50px;
+  top: 15%;
+  left: 7%;
 }
 
 .cloud2 {
-  top: 120px;
-  right: 90px;
-  transform: scale(1.4);
-  transform: scaleX(-1);
+  top: 30%;
+  right: 10%;
+  transform: scaleX(-1) scale(1.2);
+  /* transform: scale(1.2); */
+}
+
+.cloud3 {
+  bottom: 10%;
+  left: 15%;
+  transform: scaleX(-1) scale(0.75);
+  /* transform: scale(1.2); */
 }
 
 
