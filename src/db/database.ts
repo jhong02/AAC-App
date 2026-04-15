@@ -8,7 +8,7 @@
  */
 
 import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
-import { runMigrations } from "./database";
+import { runMigrations } from "./migrations";
 
 
 //Configurations
@@ -38,7 +38,7 @@ async function writeToOPFS(data: Uint8Array): Promise<void> {
     const root = await navigator.storage.getDirectory();
     const fileHandle = await root.getFileHandle(DB_FILE_NAME, { create: true });
     const writable = await fileHandle.createWritable();
-    await writable.write(data);
+    await writable.write(data.buffer as ArrayBuffer);
     await writable.close();
   } catch (err) {
     console.error("[DB] Failed to persist to OPFS:", err);
