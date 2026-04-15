@@ -1,52 +1,138 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { coreWords } from "../data/coreWords";
-import {
-  TALK_BOARD_CELLS,
-  TALK_CONTROLS,
-  type TalkAction,
-  type TalkBoardCell,
-} from "../data/talkBoard";
 import "../styles/talkpage.css";
 
-type ResolvedTalkCell = TalkBoardCell & {
+import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
+import arrowRightIcon from "../assets/images/icons/arrow_right.png";
+import drinkIcon from "../assets/images/icons/drink.png";
+import goIcon from "../assets/images/icons/go.png";
+import happyIcon from "../assets/images/icons/happy.png";
+import helpIcon from "../assets/images/icons/help.png";
+import homeIcon from "../assets/images/icons/home.png";
+import hungryIcon from "../assets/images/icons/hungry.png";
+import iIcon from "../assets/images/icons/I.png";
+import nervousIcon from "../assets/images/icons/nervous.png";
+import phoneIcon from "../assets/images/icons/phone.png";
+import pizzaIcon from "../assets/images/icons/pizza.png";
+import playIcon from "../assets/images/icons/play.png";
+import sadIcon from "../assets/images/icons/sad.png";
+import sleepIcon from "../assets/images/icons/sleep.png";
+import snackIcon from "../assets/images/icons/snack.png";
+import tiredIcon from "../assets/images/icons/tired.png";
+import wantIcon from "../assets/images/icons/want.png";
+
+type TalkAction = "undo" | "clear" | "favorites" | "save" | "speak";
+
+type TalkControl = {
+  id: string;
+  label: string;
+  icon: string;
+  action: TalkAction;
+  accent: string;
+  labelColor: string;
+};
+
+type WordTile = {
+  id: string;
   label: string;
   value: string;
-  category?: string;
+  icon: string;
+  type: "word";
 };
+
+type NavTile = {
+  id: string;
+  label: string;
+  icon: string;
+  type: "nav";
+  action: "previous" | "next";
+};
+
+type TalkTile = WordTile | NavTile;
+
+const TALK_CONTROLS: TalkControl[] = [
+  {
+    id: "undo",
+    label: "Undo",
+    icon: "↩",
+    action: "undo",
+    accent: "#F4B73F",
+    labelColor: "#F5A623",
+  },
+  {
+    id: "clear",
+    label: "Clear",
+    icon: "✕",
+    action: "clear",
+    accent: "#FF7640",
+    labelColor: "#FF6A33",
+  },
+  {
+    id: "favorites",
+    label: "Favorites",
+    icon: "★",
+    action: "favorites",
+    accent: "#ECD234",
+    labelColor: "#E6C400",
+  },
+  {
+    id: "save",
+    label: "Save",
+    icon: "💾",
+    action: "save",
+    accent: "#6FC6EA",
+    labelColor: "#5CBFEA",
+  },
+  {
+    id: "speak",
+    label: "Speak!",
+    icon: "🔊",
+    action: "speak",
+    accent: "#7BD531",
+    labelColor: "#6FCF26",
+  },
+];
+
+const TALK_TILES: TalkTile[] = [
+  { id: "i", label: "I", value: "I", icon: iIcon, type: "word" },
+  { id: "go", label: "Go", value: "go", icon: goIcon, type: "word" },
+  { id: "drink", label: "Drink", value: "drink", icon: drinkIcon, type: "word" },
+  { id: "hungry", label: "Hungry", value: "hungry", icon: hungryIcon, type: "word" },
+  { id: "happy", label: "Happy", value: "happy", icon: happyIcon, type: "word" },
+  { id: "sad", label: "Sad", value: "sad", icon: sadIcon, type: "word" },
+
+  { id: "phone", label: "Phone", value: "phone", icon: phoneIcon, type: "word" },
+  { id: "play", label: "Play", value: "play", icon: playIcon, type: "word" },
+  { id: "snack", label: "Snack", value: "snack", icon: snackIcon, type: "word" },
+  { id: "sleep", label: "Sleep", value: "sleep", icon: sleepIcon, type: "word" },
+  { id: "tired", label: "Tired", value: "tired", icon: tiredIcon, type: "word" },
+  { id: "nervous", label: "Nervous", value: "nervous", icon: nervousIcon, type: "word" },
+
+  {
+    id: "previous",
+    label: "Previous",
+    icon: arrowLeftIcon,
+    type: "nav",
+    action: "previous",
+  },
+  { id: "help", label: "Help", value: "help", icon: helpIcon, type: "word" },
+  { id: "home", label: "Home", value: "home", icon: homeIcon, type: "word" },
+  { id: "pizza", label: "Pizza", value: "pizza", icon: pizzaIcon, type: "word" },
+  { id: "want", label: "Want", value: "want", icon: wantIcon, type: "word" },
+  {
+    id: "next",
+    label: "Next",
+    icon: arrowRightIcon,
+    type: "nav",
+    action: "next",
+  },
+];
 
 const TalkPage = () => {
   const navigate = useNavigate();
 
   const [sentenceWords, setSentenceWords] = useState<string[]>([]);
   const [lastPressedId, setLastPressedId] = useState<string | null>(null);
-
-  const coreWordMap = useMemo(() => {
-    return new Map(coreWords.map((word) => [word.id, word]));
-  }, []);
-
-  const resolvedCells = useMemo<ResolvedTalkCell[]>(() => {
-    return TALK_BOARD_CELLS.map((cell) => {
-      if (cell.type === "nav") {
-        return {
-          ...cell,
-          label: cell.fallbackLabel ?? "[nav]",
-          value: cell.fallbackLabel ?? "[nav]",
-        };
-      }
-
-      const matchedWord = cell.coreWordId
-        ? coreWordMap.get(cell.coreWordId)
-        : undefined;
-
-      return {
-        ...cell,
-        label: matchedWord?.word ?? "[sample]",
-        value: matchedWord?.word ?? "[sample]",
-        category: matchedWord?.category,
-      };
-    });
-  }, [coreWordMap]);
 
   const displayedSentence = sentenceWords.join(" ");
 
@@ -63,44 +149,31 @@ const TalkPage = () => {
 
   const markPressed = (id: string) => {
     setLastPressedId(id);
+
     window.setTimeout(() => {
       setLastPressedId((current) => (current === id ? null : current));
     }, 180);
   };
 
-  const handleWordTap = (cell: ResolvedTalkCell) => {
-    markPressed(cell.id);
-    setSentenceWords((prev) => [...prev, cell.value]);
+  const handleWordTap = (tile: WordTile) => {
+    markPressed(tile.id);
+    setSentenceWords((prev) => [...prev, tile.value]);
 
     console.log("[TalkPage] word tapped:", {
-      coreWordId: cell.coreWordId,
-      word: cell.value,
-      category: cell.category,
-      boardCellId: cell.id,
+      word: tile.value,
+      boardCellId: tile.id,
     });
   };
 
-  const handleNavAction = (cell: ResolvedTalkCell) => {
-  markPressed(cell.id);
+  const handleNavTap = (tile: NavTile) => {
+    markPressed(tile.id);
 
-  // Make the Home tile act like a regular word button
-  if (cell.action === "home") {
-    setSentenceWords((prev) => [...prev, cell.label]);
-
-    console.log("[TalkPage] home tile tapped like word:", {
-      word: cell.label,
-      boardCellId: cell.id,
+    console.log("[TalkPage] nav action:", {
+      action: tile.action,
+      boardCellId: tile.id,
+      label: tile.label,
     });
-
-    return;
-  }
-
-  console.log("[TalkPage] nav action:", {
-    action: cell.action,
-    boardCellId: cell.id,
-    label: cell.label,
-  });
-};
+  };
 
   const handleControlAction = (action: TalkAction, controlId: string) => {
     markPressed(controlId);
@@ -118,10 +191,8 @@ const TalkPage = () => {
         speakText(displayedSentence);
         break;
 
-      case "home":
-        navigate("/");
-        break;
-
+      case "favorites":
+      case "save":
       default:
         console.log("[TalkPage] control action:", {
           action,
@@ -149,15 +220,13 @@ const TalkPage = () => {
           aria-label="Go to home page"
           onClick={() => navigate("/")}
         >
-          <span className="talk-home-badge__icon">🏠</span>
+          <img src={homeIcon} alt="" className="talk-home-badge__icon-img" />
           <span className="talk-home-badge__text">Home</span>
         </button>
 
         <button
           type="button"
-          className={`talk-sentence-bar ${
-            displayedSentence ? "" : "is-empty"
-          }`}
+          className={`talk-sentence-bar ${displayedSentence ? "" : "is-empty"}`}
           onClick={handleSentenceBarClick}
           aria-label="Sentence bar"
         >
@@ -168,7 +237,7 @@ const TalkPage = () => {
           {TALK_CONTROLS.map((control) => {
             const style = {
               "--accent": control.accent,
-              "--accent-soft": control.accentSoft,
+              "--label-color": control.labelColor,
             } as CSSProperties;
 
             return (
@@ -190,26 +259,31 @@ const TalkPage = () => {
         </div>
 
         <div className="talk-grid" aria-label="AAC talk board">
-          {resolvedCells.map((cell) => {
-            const isNav = cell.type === "nav";
+          {TALK_TILES.map((tile) => {
+            const isNav = tile.type === "nav";
 
             return (
               <button
-                key={cell.id}
+                key={tile.id}
                 type="button"
                 className={`talk-tile ${isNav ? "is-nav" : "is-word"} ${
-                  lastPressedId === cell.id ? "is-pressed" : ""
+                  lastPressedId === tile.id ? "is-pressed" : ""
                 }`}
                 onClick={() =>
-                  isNav ? handleNavAction(cell) : handleWordTap(cell)
+                  isNav ? handleNavTap(tile as NavTile) : handleWordTap(tile as WordTile)
                 }
-                aria-label={cell.label}
-                data-core-word-id={cell.coreWordId ?? ""}
-                data-category={cell.category ?? ""}
-                data-action={cell.action ?? ""}
+                aria-label={tile.label}
+                data-action={isNav ? tile.action : ""}
               >
-                <span className="talk-tile__icon">{cell.icon}</span>
-                <span className="talk-tile__label">{cell.label}</span>
+                <span className="talk-tile__icon">
+                  <img
+                    src={tile.icon}
+                    alt=""
+                    className="talk-tile__icon-img"
+                    draggable="false"
+                  />
+                </span>
+                <span className="talk-tile__label">{tile.label}</span>
               </button>
             );
           })}
