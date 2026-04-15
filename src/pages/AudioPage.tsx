@@ -154,13 +154,13 @@ export default function AudioPage() {
 
         {/* Action Buttons */}
         <div className="audio-actions">
-          <button className="audio-preview-btn" onClick={handlePreview}>
+          <button className="btn-third audio-preview" onClick={handlePreview}>
             ▶ Preview
           </button>
-          <button className="audio-reset-btn" onClick={handleReset}>
+          <button className="btn-third audio-reset" onClick={handleReset}>
             ↺ Reset
           </button>
-          <button className="audio-save-btn" onClick={handleSave}>
+          <button className="btn-third audio-save" onClick={handleSave}>
             {savedBadge ? "✓ Saved!" : "💾 Save"}
           </button>
         </div>

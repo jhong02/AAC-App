@@ -98,29 +98,38 @@
 .btn.btn-primary.home-btn-primary {
   background: #9574ff;
   color: #8667ee;
+  width: 45%;
 }
 
 .btn.btn-primary.home-btn-primary:hover {
   background: #4338ca;
+  color: #3b1f9c;
+  transform: translateY(-2px);
 }
 
 
 .btn.btn-secondary.stats-btn {
   background: #6ee0ac;
   color: #62cf9e;
+  width: 55%;
 }
 
 .btn.btn-secondary.stats-btn:hover {
   background: #4fb185;
+  color: #4fb185;
+  transform: translateY(-2px);
 }
 
 .btn.btn-secondary.config-btn {
   background: #ffaf2d;
   color: #eea32a;
+  width: 70%;
 }
 
 .btn.btn-secondary.config-btn:hover {
-  background: #e79c22;
+  background: #eba028;
+  color: #d17c1b;
+  transform: translateY(-2px);
 }
 
 
