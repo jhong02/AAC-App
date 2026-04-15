@@ -13,8 +13,8 @@
 }
 
 /* Decorative cloud overrides (reuse .cloud from global.css) */
-.audio-page .cloud1 { top: 30px; left: 40px; }
-.audio-page .cloud2 { top: 100px; right: 60px; transform: scaleX(-1); }
+.audio-page .cloud1 { top: 10%; left: 8%; }
+.audio-page .cloud2 { bottom: 40%; left: 90%; transform: scaleX(-1); }
 
 /* ─── Card ──────────────────────────────────────────────────────── */
 .audio-card {
@@ -217,25 +217,43 @@
 }
 
 /* ─── Save Button ───────────────────────────────────────────────── */
-.audio-save-btn {
+.btn-third.audio-save {
   background: #6ee0ac;
-  border: 4px solid white;
-  border-radius: 60px;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
-  color: white;
-  font-size: 20px;
-  font-weight: 800;
-  padding: 14px 20px;
-  cursor: pointer;
-  transition: background 0.15s, transform 0.06s;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-.audio-save-btn:hover {
+.btn-third.audio-save:hover {
   background: #4fb185;
   transform: translateY(-1px);
 }
 
-.audio-save-btn:active {
+.btn-third.audio-save:active {
+  transform: translateY(1px);
+}
+
+
+.btn-third.audio-preview {
+  background: #ecea6f;
+}
+
+.btn-third.audio-preview:hover {
+  background: #bdbb5c;
+  transform: translateY(-1px);
+}
+
+.btn-third.audio-preview:active {
+  transform: translateY(1px);
+}
+
+
+.btn-third.audio-reset {
+  background: #ec7965;
+}
+
+.btn-third.audio-reset:hover {
+  background: #bd5c4b;
+  transform: translateY(-1px);
+}
+
+.btn-third.audio-reset:active {
   transform: translateY(1px);
 }
