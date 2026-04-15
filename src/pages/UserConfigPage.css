@@ -16,16 +16,6 @@
   margin-top: 30px;
 }
 
-/*
-.userConfig-btn {
-  width: 150px;
-  height: 60px;
-  font-size: 18px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-*/
-
 .userConfig-grid {
   display: flex;
   justify-content: center;
@@ -34,13 +24,29 @@
 }
 
 .btn.btn-secondary.btn-userConfig-audio {
-  background-color: #ffcf4d;
-  color: #af7c0c;
+  background-color: #ffd358;
+  color: #a0710b;
+  width: 35%;
+}
+
+.btn.btn-secondary.btn-userConfig-audio:hover {
+  background-color: #e0b43b;
+  color: #64480b;
+  width: 35%;
+  transform: translateY(-2px);
 }
 
 .btn.btn-secondary.btn-userConfig-grid {
   background-color: #e39090;
   color: #643333;
+  width: 35%;
+}
+
+.btn.btn-secondary.btn-userConfig-grid:hover {
+  background-color: #b46666;
+  color: #3b1919;
+  width: 35%;
+  transform: translateY(-2px);
 }
 
 .cloud1 {
@@ -59,4 +65,10 @@
   background: #9fe6a6;
   font-size: 20px;
   color: #474747;
+}
+
+.btn.btn-secondary.back-btn:hover {
+  background: #83b69f;
+  color: #2e2e2e;
+  transform: translateY(-2px);
 }
