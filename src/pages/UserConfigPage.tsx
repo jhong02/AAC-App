@@ -31,7 +31,7 @@ export default function UserConfigPage(){
 
         <br />
 
-        <button className="btn btn-secondary back-btn" onClick={() => navigate("/")}>
+        <button className="btn btn-secondary back-btn" onClick={() => navigate("/home")}>
             ← Back To Home
           </button>
 

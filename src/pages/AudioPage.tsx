@@ -82,6 +82,7 @@ export default function AudioPage() {
             max={100}
             step={1}
             value={volume}
+            style={{ "--val": `${volume}%` } as React.CSSProperties}
             onChange={(e) => setVolume(Number(e.target.value))}
           />
           <div className="audio-slider-ticks">
@@ -105,6 +106,7 @@ export default function AudioPage() {
             max={1.75}
             step={0.05}
             value={rate}
+            style={{ "--val": `${((rate - 0.5) / (1.75 - 0.5)) * 100}%` } as React.CSSProperties}
             onChange={(e) => setRate(Number(e.target.value))}
           />
           <div className="audio-slider-ticks">

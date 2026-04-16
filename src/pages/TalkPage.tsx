@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/talkpage.css";
+import { speakWithSettings } from "../hooks/useTTSSettings";
 
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
@@ -213,16 +214,8 @@ const TalkPage = () => {
   const totalPages = pages.length;
   const currentTiles = pages[currentPage];
 
-  const speakText = (text: string) => {
-    if (!text.trim()) return;
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.95;
-    utterance.pitch = 1;
-    window.speechSynthesis.speak(utterance);
-  };
+  // Reads volume, rate, and voice from localStorage set in AudioPage
+  const speakText = (text: string) => speakWithSettings(text);
 
   const markPressed = (id: string) => {
     setLastPressedId(id);
@@ -375,7 +368,7 @@ const TalkPage = () => {
           type="button"
           className="talk-home-badge"
           aria-label="Go to home page"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         >
           <img src={homeIcon} alt="" className="talk-home-badge__icon-img" />
           <span className="talk-home-badge__text">Home</span>
