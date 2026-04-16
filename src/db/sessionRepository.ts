@@ -42,7 +42,13 @@ function rowToWordEvent(row: unknown[]): WordEvent {
 export function startSession(db: Database, profileId: string): Session {
   const id = uuid();
   const now = Date.now();
- 
+
+  db.run(
+    `INSERT OR IGNORE INTO profiles (id, name, avatar_color, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?);`,
+    [profileId, "Default User", "#49a8f0", now, now]
+  );
+
   db.run(
     "INSERT INTO sessions (id, profile_id, started_at, word_count) VALUES (?, ?, ?, 0);",
     [id, profileId, now]

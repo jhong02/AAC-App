@@ -1,10 +1,5 @@
 /**
  * TalkPage.tsx
- * Author: Christian Beshara + Team
- *
- * AA-19 Subtask AA-78: Wire database session logging into TalkPage.
- * Merged database logging from AA-19 into the team's latest TalkPage.
- * All original functionality preserved — image icons, custom tiles, pagination, modal.
  */
 
 import { useState, useEffect, useRef, type ChangeEvent, type CSSProperties } from "react";
@@ -155,7 +150,7 @@ const TalkPage = () => {
   const navigate = useNavigate();
 
   // ── Database ──────────────────────────────────────────────────────────────
-  const { db, ready } = useDatabase();
+  const { db, ready, error } = useDatabase();
   const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -296,6 +291,21 @@ const TalkPage = () => {
   const handleSentenceBarClick = () => speakText(displayedSentence);
 
   // ── Render ────────────────────────────────────────────────────────────────
+  if (!ready) return (
+  <section className="talk-page">
+    <div className="talk-board-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+      <p style={{ fontSize: "2rem", fontWeight: 700, color: "#434343" }}>Loading...</p>
+    </div>
+  </section>
+  );
+
+  if (error) return (
+    <section className="talk-page">
+      <div className="talk-board-shell" style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh" }}>
+        <p style={{ fontSize: "1.5rem", color: "#ff6a3d" }}>Failed to load. Please refresh the page.</p>
+      </div>
+    </section>
+  );
   return (
     <section className="talk-page">
       <div className="talk-board-shell">
