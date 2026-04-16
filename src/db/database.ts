@@ -7,8 +7,19 @@
  * Uses the Origin Private File System (OPFS) to persist the SQLite database across page reloads 
  */
 
-import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
+
 import { runMigrations } from "./migrations";
+import type { Database, SqlJsStatic } from "sql.js";
+
+async function getSqlJs(): Promise<any> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "/node_modules/sql.js/dist/sql-wasm-browser.js";
+    script.onload = () => resolve((window as any).initSqlJs);
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
 
 
 //Configurations
@@ -59,10 +70,13 @@ export function schedulePersist(db: Database): void {
 async function initDB(): Promise<Database> {
   // Load sql.js WASM. The wasm file is served from the CDN in dev;
   // for production, copy it into /public and point locateFile there.
+  const initSqlJs = await getSqlJs();
   _SQL = await initSqlJs({
     locateFile: (file: string) =>
-      `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/${file}`,
+      `/sql-wasm.wasm`,
   });
+
+  if (!_SQL) throw new Error("[DB] Failed to load sql.js");
  
   // Try to load existing DB from OPFS
   const existing = await readFromOPFS();
