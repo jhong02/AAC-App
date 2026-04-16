@@ -368,7 +368,7 @@ const TalkPage = () => {
           type="button"
           className="talk-home-badge"
           aria-label="Go to home page"
-          onClick={() => navigate("/")}
+          onClick={() => navigate("/home")}
         >
           <img src={homeIcon} alt="" className="talk-home-badge__icon-img" />
           <span className="talk-home-badge__text">Home</span>

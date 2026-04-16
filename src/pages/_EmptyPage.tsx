@@ -6,7 +6,7 @@ export default function EmptyPage({ title }: { title: string }) {
     <div className="empty">
       <h1>{title}</h1>
       <p>Temporary page.</p>
-      <Link to="/" className="back">
+      <Link to="/home" className="back">
         ← Back Home
       </Link>
     </div>
