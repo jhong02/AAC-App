@@ -10,7 +10,7 @@ import GridPage from "./pages/GridPage";
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<TalkPage />} />
 
       <Route path="/home" element={<Home />} />
       <Route path="/talk" element={<TalkPage />} />
