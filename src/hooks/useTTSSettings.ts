@@ -56,8 +56,8 @@ export function speakWithSettings(
   const settings = { ...base, ...overrides };
 
   window.speechSynthesis.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
 
+  const utterance = new SpeechSynthesisUtterance(text); 
   utterance.volume = settings.volume / 100;
   utterance.rate   = settings.rate;
   utterance.pitch  = 1;
@@ -65,7 +65,18 @@ export function speakWithSettings(
   if (settings.voiceURI) {
     const voices = window.speechSynthesis.getVoices();
     const match  = voices.find((v) => v.voiceURI === settings.voiceURI);
-    if (match) utterance.voice = match;
+    if (match) {
+      utterance.voice = match;
+    } else {
+      // Voices not loaded yet — wait and retry once
+      window.speechSynthesis.addEventListener("voiceschanged", () => {
+        const retryVoices = window.speechSynthesis.getVoices();
+        const retryMatch  = retryVoices.find((v) => v.voiceURI === settings.voiceURI);
+        if (retryMatch) utterance.voice = retryMatch;
+        window.speechSynthesis.speak(utterance);
+      }, { once: true });
+      return;
+    }
   }
 
   window.speechSynthesis.speak(utterance);

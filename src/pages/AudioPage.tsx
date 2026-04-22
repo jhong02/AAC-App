@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  DEFAULT_TTS_SETTINGS,
-  loadTTSSettings,
-  saveTTSSettings,
-  speakWithSettings,
-} from "../hooks/useTTSSettings";
+import { useAudioSettings } from "../hooks/useAudioSettings";
 import "./AudioPage.css";
 
 export default function AudioPage() {
   const navigate = useNavigate();
 
-  const [volume, setVolume] = useState(() => loadTTSSettings().volume);
-  const [rate, setRate] = useState(() => loadTTSSettings().rate);
-  const [voiceURI, setVoiceURI] = useState(() => loadTTSSettings().voiceURI);
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
-  const [savedBadge, setSavedBadge] = useState(false);
+  const {
+    volume, setVolume,
+    rate, setRate,
+    voiceURI, setVoiceURI,
+    save, preview, reset,
+    ready, savedBadge,
+  } = useAudioSettings();
 
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Load available voices from Web Speech API
   useEffect(() => {
     const load = () => {
       const available = window.speechSynthesis
@@ -30,27 +30,11 @@ export default function AudioPage() {
   }, []);
 
   const speedLabel = (val: number) => {
-    if (val <= 0.6) return "Very Slow";
+    if (val <= 0.6)  return "Very Slow";
     if (val <= 0.85) return "Slow";
     if (val <= 1.15) return "Normal";
-    if (val <= 1.4) return "Fast";
+    if (val <= 1.4)  return "Fast";
     return "Very Fast";
-  };
-
-  const handleSave = () => {
-    saveTTSSettings({ volume, rate, voiceURI });
-    setSavedBadge(true);
-    setTimeout(() => setSavedBadge(false), 2000);
-  };
-
-  const handlePreview = () => {
-    speakWithSettings("Hello! This is how I will sound.", { volume, rate, voiceURI });
-  };
-
-  const handleReset = () => {
-    setVolume(DEFAULT_TTS_SETTINGS.volume);
-    setRate(DEFAULT_TTS_SETTINGS.rate);
-    setVoiceURI(DEFAULT_TTS_SETTINGS.voiceURI);
   };
 
   return (
@@ -156,13 +140,13 @@ export default function AudioPage() {
 
         {/* Action Buttons */}
         <div className="audio-actions">
-          <button className="btn-third audio-preview" onClick={handlePreview}>
+          <button className="btn-third audio-preview" onClick={preview}>
             ▶ Preview
           </button>
-          <button className="btn-third audio-reset" onClick={handleReset}>
+          <button className="btn-third audio-reset" onClick={reset}>
             ↺ Reset
           </button>
-          <button className="btn-third audio-save" onClick={handleSave}>
+          <button className="btn-third audio-save" onClick={save} disabled={!ready}>
             {savedBadge ? "✓ Saved!" : "💾 Save"}
           </button>
         </div>

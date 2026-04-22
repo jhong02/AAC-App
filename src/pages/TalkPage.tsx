@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import "../styles/talkpage.css";
 import { speakWithSettings } from "../hooks/useTTSSettings";
+import { useDatabase } from "../hooks/useDatabase";
 import {
   useBoardConfig,
   GRID_LAYOUTS,
@@ -141,6 +142,7 @@ const TalkPage = () => {
 
   const { boardTiles, gridPreset } = useBoardConfig();
   const { logTap } = useSessionLogger();
+  const { db } = useDatabase();
   const layout = GRID_LAYOUTS[gridPreset];
 
 
@@ -178,7 +180,7 @@ const TalkPage = () => {
 
   const speakText = (text: string) => {
     if (!text.trim()) return;
-    speakWithSettings(text);
+    speakWithSettings(text, undefined, db ?? undefined);
   };
 
   const markPressed = (id: string) => {
