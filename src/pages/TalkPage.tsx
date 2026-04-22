@@ -12,20 +12,17 @@ import {
 import { useNavigate } from "react-router-dom";
 import "../styles/talkpage.css";
 import { speakWithSettings } from "../hooks/useTTSSettings";
-import { useDatabase } from "../hooks/useDatabase";
-import { startSession, endSession, logWordTap } from "../db/sessionRepository";
 import {
   useBoardConfig,
   GRID_LAYOUTS,
   type WordTile,
 } from "../context/BoardConfigContext";
+import { useSessionLogger } from "../hooks/useSessionLogger" //for session logging
 
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
 import homeIcon from "../assets/images/icons/home.png";
 
-// Temporary: fixed profile ID until ProfilePage is built
-const TEMP_PROFILE_ID = "default-profile";
 
 type TalkAction = "undo" | "clear" | "speak";
 
@@ -143,24 +140,9 @@ const TalkPage = () => {
   const navigate = useNavigate();
 
   const { boardTiles, gridPreset } = useBoardConfig();
+  const { logTap } = useSessionLogger();
   const layout = GRID_LAYOUTS[gridPreset];
 
-  // ── Database ──────────────────────────────────────────────────────────────
-  const { db, ready, error } = useDatabase();
-  const sessionIdRef = useRef<string | null>(null);
-
-  useEffect(() => {
-    if (!ready || !db) return;
-
-    const session = startSession(db, TEMP_PROFILE_ID);
-    sessionIdRef.current = session.id;
-
-    return () => {
-      if (sessionIdRef.current && db) {
-        endSession(db, sessionIdRef.current);
-      }
-    };
-  }, [ready, db]);
 
   // ── UI state ──────────────────────────────────────────────────────────────
   const [sentenceWords, setSentenceWords] = useState<string[]>([]);
@@ -210,19 +192,7 @@ const TalkPage = () => {
     markPressed(tile.id);
 
     setSentenceWords((prev) => {
-      const position = prev.length;
-
-      if (db && sessionIdRef.current) {
-        logWordTap(db, {
-          sessionId: sessionIdRef.current,
-          profileId: TEMP_PROFILE_ID,
-          wordId: tile.id,
-          word: tile.value,
-          category: tile.category ?? "basic",
-          position,
-        });
-      }
-
+      logTap(tile.value, prev.length); // ← add here
       return [...prev, tile.value];
     });
   };
@@ -259,28 +229,6 @@ const TalkPage = () => {
   const handleSentenceBarClick = () => {
     speakText(displayedSentence);
   };
-
-  if (!ready) {
-    return (
-      <section className="talk-page">
-        <div className="talk-board-shell talk-board-shell--state">
-          <p className="talk-board-shell__message">Loading...</p>
-        </div>
-      </section>
-    );
-  }
-
-  if (error) {
-    return (
-      <section className="talk-page">
-        <div className="talk-board-shell talk-board-shell--state">
-          <p className="talk-board-shell__message is-error">
-            Failed to load. Please refresh the page.
-          </p>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="talk-page">
