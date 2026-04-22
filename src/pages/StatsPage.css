@@ -1,0 +1,66 @@
+/* ─── Stats Page Layout ──── */
+.stats-page {
+  min-height: 100vh;
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 16px;
+  background: #b8f0a9;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Decorative cloud overrides (reuse .cloud from global.css) */
+.stats-page .cloud1 { bottom: 40%; left: 90%; transform: scaleX(-1); }
+.stats-page .cloud2 { top: 10%; left: 8%;}
+
+/* ─── Card ──── */
+.stats-card {
+  background: white;
+  border-radius: 28px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  padding: 36px 40px;
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Header ──── */
+.stats-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stats-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  color: #6ee0ac;
+  flex: 1;
+  text-align: center;
+}
+
+.stats-back-btn {
+  background: #f3f4f6;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.stats-back-btn:hover {
+  background: #e5e7eb;
+}

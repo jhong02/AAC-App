@@ -30,7 +30,8 @@
 
 .grid-settings-title {
   margin: 0 0 6px;
-  color: #43543b;
+  /*color: #43543b;*/
+  color: #d15959;
   font-size: clamp(2rem, 2.8vw, 3rem);
 }
 
