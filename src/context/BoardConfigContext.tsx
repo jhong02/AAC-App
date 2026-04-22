@@ -1,11 +1,11 @@
 import {
   createContext,
   useContext,
-  useState,
   type ReactNode,
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { useBoardSettings } from "../hooks/useBoardSettings";
 
 import drinkIcon from "../assets/images/icons/drink.png";
 import goIcon from "../assets/images/icons/go.png";
@@ -77,7 +77,7 @@ const SAMPLE_WORD_TILES: WordTile[] = Array.from({ length: 32 }, (_, index) => (
   category: "sample",
 }));
 
-const INITIAL_BOARD_TILES: WordTile[] = [...MAIN_WORD_TILES, ...SAMPLE_WORD_TILES];
+export const INITIAL_BOARD_TILES: WordTile[] = [...MAIN_WORD_TILES, ...SAMPLE_WORD_TILES];
 
 type BoardConfigContextValue = {
   gridPreset: GridPreset;
@@ -90,8 +90,7 @@ type BoardConfigContextValue = {
 const BoardConfigContext = createContext<BoardConfigContextValue | null>(null);
 
 export function BoardConfigProvider({ children }: { children: ReactNode }) {
-  const [gridPreset, setGridPreset] = useState<GridPreset>("default");
-  const [boardTiles, setBoardTiles] = useState<WordTile[]>(INITIAL_BOARD_TILES);
+  const { gridPreset, setGridPreset, boardTiles, setBoardTiles } = useBoardSettings();
 
   const replaceTile = (targetTileId: string, nextTile: WordTile) => {
     setBoardTiles((prev) =>
