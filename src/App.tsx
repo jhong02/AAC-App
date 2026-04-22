@@ -6,21 +6,22 @@ import SettingsPage from "./pages/SettingsPage";
 import UserConfigPage from "./pages/UserConfigPage";
 import AudioPage from "./pages/AudioPage";
 import GridPage from "./pages/GridPage";
+import { BoardConfigProvider } from "./context/BoardConfigContext";
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<TalkPage />} />
-
-      <Route path="/home" element={<Home />} />
-      <Route path="/talk" element={<TalkPage />} />
-      <Route path="/user-config" element={<UserConfigPage />} />
-      <Route path="/stats" element={<StatsPage />} />
-      <Route path="/settings" element={<SettingsPage />} />
-      <Route path="/audio" element={<AudioPage />} />
-      <Route path="grid" element={<GridPage/>} />
-      <Route path="*" element={<Navigate to="/" replace />} />
-
-    </Routes>
+    <BoardConfigProvider>
+      <Routes>
+        <Route path="/" element={<TalkPage />} />
+        <Route path="/home" element={<Home />} />
+        <Route path="/talk" element={<TalkPage />} />
+        <Route path="/user-config" element={<UserConfigPage />} />
+        <Route path="/stats" element={<StatsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/audio" element={<AudioPage />} />
+        <Route path="/grid" element={<GridPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BoardConfigProvider>
   );
 }

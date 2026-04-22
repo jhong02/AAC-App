@@ -1,135 +1,234 @@
 .home {
   min-height: 100vh;
-  width: 100vw;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  margin: 0;
-  background: #b8f0a9;
-  /* font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; */
-  font-family: "Quicksand", sans-serif;
+  width: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    #bde8a8;
+  background-size: 32px 32px, 32px 32px, auto;
+  font-family: "Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.home-frame {
+  min-height: calc(100vh - 20px);
+  box-sizing: border-box;
+  background: transparent;
+  padding: 28px;
 }
 
 .home-card {
-  width: 100vw;
-  height: 100vh;
-  background: #b8f0a9;
-  border: none;
-  border-radius: 0;
-  padding: 48px;
-  box-shadow: none;
-
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 24px;
+  min-height: calc(100vh - 76px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 34px;
 }
 
 .home-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   text-align: center;
 }
 
-.home-header h1 {
+.home-kicker,
+.home-time,
+.home-date {
   margin: 0;
-  font-size: 40px;
-  color: #ffcf4d;
+  color: #f4c446;
+  text-shadow: none;
+  -webkit-text-stroke: 8px #fff;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.16));
 }
 
-.home-header p {
-  margin: 8px 0 0;
-  font-size: 26px;
-  color: #ffcf4d;
+.home-kicker {
+  font-size: clamp(2.8rem, 4vw, 4.5rem);
+  font-weight: 600;
+  line-height: 1;
+  margin-bottom: 14px;
 }
 
-
-.cloud1 {
-  top: 15%;
-  left: 7%;
-}
-
-.cloud2 {
-  top: 30%;
-  right: 10%;
-  transform: scaleX(-1) scale(1.2);
-  /* transform: scale(1.2); */
-}
-
-.cloud3 {
-  bottom: 10%;
-  left: 15%;
-  transform: scaleX(-1) scale(0.75);
-  /* transform: scale(1.2); */
-}
-
-
-.home-grid {
-  width: min(900px, 92vw);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  align-content: center;
-  justify-items: center;
-}
-
-.home-btn {
-  appearance: none;
-  border: 1px solid #d1d5db;
-  background: #f9fafb;
-  border-radius: 14px;
-  padding: 18px 20px;
-  font-size: 20px;
+.home-time {
+  font-size: clamp(4.8rem, 9vw, 8.8rem);
   font-weight: 700;
-  color: #111827;
+  line-height: 0.95;
+  margin-bottom: 14px;
+}
+
+.home-date {
+  font-size: clamp(2.4rem, 5vw, 4.4rem);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.home-actions {
+  width: min(760px, 90vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.home-pill {
+  --label-color: #ffffff;
+
+  border: 4px solid #fff;
+  border-radius: 999px;
+  color: #fff;
+  font-family: inherit;
+  font-weight: 700;
   cursor: pointer;
-  width: 100%;
-  transition: transform 0.06s ease, background 0.15s ease, border-color 0.15s ease;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
 }
 
-.home-btn:hover {
-  background: #f3f4f6;
-  border-color: #cbd5e1;
+.home-pill:hover {
+  filter: brightness(1.03);
 }
 
-.home-btn:active {
-  transform: translateY(1px);
+.home-pill:active {
+  transform: translateY(2px) scale(0.99);
+  box-shadow: 0 7px 14px rgba(0, 0, 0, 0.16);
 }
 
-
-.btn.btn-primary.home-btn-primary {
-  background: #9574ff;
-  color: #8667ee;
-  width: 45%;
+.home-pill__label {
+  display: block;
+  color: var(--label-color);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  text-shadow: none;
+  -webkit-text-stroke: 7px #fff;
+  paint-order: stroke fill;
 }
 
-.btn.btn-primary.home-btn-primary:hover {
-  background: #4338ca;
-  color: #3b1f9c;
-  transform: translateY(-2px);
+.home-pill--talk {
+  --label-color: #7b64e8;
+  width: min(700px, 88vw);
+  min-height: 128px;
+  padding: 24px 40px;
+  background: #8667ee;
 }
 
+.home-pill--talk .home-pill__label {
+  font-size: clamp(3.2rem, 6vw, 5.6rem);
+}
 
-.btn.btn-secondary.stats-btn {
+.home-pill--stats {
+  --label-color: #57c894;
+  width: min(390px, 70vw);
+  min-height: 88px;
+  padding: 18px 28px;
   background: #6ee0ac;
-  color: #62cf9e;
-  width: 55%;
 }
 
-.btn.btn-secondary.stats-btn:hover {
-  background: #4fb185;
-  color: #4fb185;
-  transform: translateY(-2px);
+.home-pill--stats .home-pill__label {
+  font-size: clamp(2rem, 4vw, 3.2rem);
 }
 
-.btn.btn-secondary.config-btn {
+.home-pill--config {
+  --label-color: #ec9e1f;
+  width: min(500px, 76vw);
+  min-height: 88px;
+  padding: 18px 28px;
   background: #ffaf2d;
-  color: #eea32a;
-  width: 70%;
 }
 
-.btn.btn-secondary.config-btn:hover {
-  background: #eba028;
-  color: #d17c1b;
-  transform: translateY(-2px);
+.home-pill--config .home-pill__label {
+  font-size: clamp(2rem, 4vw, 3.2rem);
 }
 
+@media (max-width: 900px) {
+  .home {
+    background-size: 26px 26px, 26px 26px, auto;
+  }
 
+  .home-frame {
+    padding: 18px;
+  }
+
+  .home-card {
+    gap: 26px;
+  }
+
+  .home-kicker,
+  .home-time,
+  .home-date {
+    -webkit-text-stroke-width: 6px;
+    filter: drop-shadow(0 8px 8px rgba(0, 0, 0, 0.14));
+  }
+
+  .home-pill__label {
+    -webkit-text-stroke-width: 5px;
+  }
+
+  .home-pill--talk {
+    min-height: 108px;
+    padding: 20px 28px;
+  }
+
+  .home-pill--stats,
+  .home-pill--config {
+    min-height: 78px;
+    padding: 14px 22px;
+  }
+}
+
+@media (max-width: 600px) {
+  .home {
+    padding: 8px;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+      #bde8a8;
+    background-size: 22px 22px, 22px 22px, auto;
+  }
+
+  .home-frame {
+    min-height: calc(100vh - 16px);
+    padding: 14px;
+  }
+
+  .home-card {
+    min-height: calc(100vh - 50px);
+    gap: 20px;
+  }
+
+  .home-kicker,
+  .home-time,
+  .home-date {
+    -webkit-text-stroke-width: 4px;
+    filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.12));
+  }
+
+  .home-actions {
+    width: 100%;
+    gap: 18px;
+  }
+
+  .home-pill {
+    border-width: 3px;
+  }
+
+  .home-pill__label {
+    -webkit-text-stroke-width: 3px;
+  }
+
+  .home-pill--talk {
+    width: min(100%, 520px);
+    min-height: 92px;
+    padding: 16px 20px;
+  }
+
+  .home-pill--stats,
+  .home-pill--config {
+    width: min(88%, 380px);
+    min-height: 68px;
+    padding: 12px 18px;
+  }
+}

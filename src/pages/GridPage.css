@@ -1,0 +1,206 @@
+.grid-settings-page {
+  min-height: 100vh;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #bde8a8;
+  font-family: "Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.grid-settings-shell {
+  max-width: 1800px;
+  margin: 0 auto;
+  position: relative;
+  padding: 28px;
+  box-sizing: border-box;
+  background: #a9df93;
+  border: 3px solid #7cae71;
+  border-radius: 18px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+}
+
+.grid-settings-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding-right: 130px;
+}
+
+.grid-settings-title {
+  margin: 0 0 6px;
+  color: #43543b;
+  font-size: clamp(2rem, 2.8vw, 3rem);
+}
+
+.grid-settings-subtitle {
+  margin: 0;
+  color: #58704e;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.grid-settings-back-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: #9fe6a6;
+  color: #474747;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
+}
+
+.grid-settings-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.grid-settings-card {
+  background: rgba(255, 255, 255, 0.58);
+  border: 3px solid #7cae71;
+  border-radius: 22px;
+  padding: 18px;
+  box-sizing: border-box;
+}
+
+.grid-settings-card__title {
+  margin: 0 0 14px;
+  color: #425239;
+  font-size: 1.45rem;
+}
+
+.grid-settings-presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.grid-settings-preset {
+  border: 3px solid #fff;
+  border-radius: 20px;
+  padding: 16px;
+  background: #f5fff0;
+  color: #4d5f45;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.grid-settings-preset.is-active {
+  border-color: #49a8f0;
+  box-shadow:
+    0 0 0 4px rgba(73, 168, 240, 0.22),
+    0 6px 12px rgba(0, 0, 0, 0.12);
+}
+
+.grid-settings-preset__name {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.grid-settings-preset__meta {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #6b7d62;
+}
+
+.grid-settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.grid-settings-action-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  color: #fff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.18);
+}
+
+.grid-settings-action-btn.is-custom {
+  background: #ecd234;
+  color: #746300;
+}
+
+.grid-settings-action-btn.is-save {
+  background: #49a8f0;
+}
+
+.grid-settings-note {
+  margin: 14px 0 0;
+  color: #56684f;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.grid-settings-preview-card .talk-grid .talk-tile.is-word:not(.is-replaceable) {
+  cursor: default;
+}
+
+.grid-settings-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.grid-settings-preview-meta {
+  color: #58704e;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .grid-settings-top {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-settings-header {
+    padding-right: 0;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 700px) {
+  .grid-settings-page {
+    padding: 14px;
+  }
+
+  .grid-settings-shell {
+    padding: 18px;
+  }
+
+  .grid-settings-presets {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-settings-actions {
+    flex-direction: column;
+  }
+
+  .grid-settings-preview-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .grid-settings-back-btn {
+    width: 100%;
+  }
+}
