@@ -23,7 +23,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 36px 40px;
   width: 100%;
-  max-width: 560px;
+  max-width: 800px;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -47,6 +47,13 @@
   text-align: center;
 }
 
+.stats-header h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  /*color: #34d399;*/
+}
+
 .stats-back-btn {
   background: #f3f4f6;
   border: 2px solid #e5e7eb;
@@ -63,4 +70,58 @@
 
 .stats-back-btn:hover {
   background: #e5e7eb;
+}
+
+
+.stats-section {
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.bar-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.bar-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.bar-category {
+  color: #888;
+  font-weight: 400;
+}
+
+.bar-track {
+  width: 100%;
+  height: 14px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #34d399, #10b981);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
+
+.bar-count {
+  font-size: 12px;
+  color: #666;
 }
