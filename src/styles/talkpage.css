@@ -4,6 +4,7 @@
   --shell-bg: #a9df93;
   --shell-border: #7cae71;
   --home-blue: #49a8f0;
+  --favorites-yellow: #f4c84a;
   --sentence-bg: #f8f8f8;
   --sentence-border: #6f6f6f;
   --grid-bg: #d8d8d8;
@@ -27,8 +28,7 @@
 
 .talk-board-shell {
   width: min(1800px, calc(100vw - 24px));
-  position: relative;
-  padding: 72px 18px 18px;
+  padding: 14px 18px 18px;
   box-sizing: border-box;
   background: var(--shell-bg);
   border: 3px solid var(--shell-border);
@@ -36,34 +36,19 @@
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
-.talk-board-shell--state {
-  min-height: calc(100vh - 24px);
+.talk-top-bar {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-.talk-board-shell__message {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #434343;
-}
-
-.talk-board-shell__message.is-error {
-  color: #ff6a3d;
-  font-size: 1.4rem;
-}
-
-.talk-home-badge {
-  position: absolute;
-  top: 10px;
-  right: 14px;
-  z-index: 3;
+.talk-top-badge {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   padding: 8px 14px;
-  background: var(--home-blue);
   color: var(--white);
   border: 3px solid var(--white);
   border-radius: 999px;
@@ -73,21 +58,34 @@
   cursor: pointer;
 }
 
-.talk-home-badge__icon-img {
-  width: 20px;
-  height: 20px;
+.talk-top-badge--home {
+  background: var(--home-blue);
+}
+
+.talk-top-badge--favorites {
+  background: var(--favorites-yellow);
+}
+
+.talk-top-badge__icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.talk-top-badge__icon-img {
+  width: 18px;
+  height: 18px;
   object-fit: contain;
   display: block;
 }
 
-.talk-home-badge__text {
+.talk-top-badge__text {
   line-height: 1;
 }
 
 .talk-sentence-bar {
   width: 100%;
   min-height: 110px;
-  margin: 0 0 18px;
+  margin: 0 0 14px;
   padding: 18px 24px;
   box-sizing: border-box;
   display: flex;
@@ -118,11 +116,264 @@
   color: transparent;
 }
 
+.talk-filter-row {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.talk-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.talk-filter__label {
+  color: #4d5c46;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.talk-filter__select {
+  min-width: 240px;
+  height: 48px;
+  padding: 0 16px;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  background: #f5fff0;
+  color: #44513f;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+  outline: none;
+  cursor: pointer;
+}
+
+.talk-filter__select:focus {
+  border-color: #49a8f0;
+}
+
+.talk-filter__select--all {
+  background: #f5fff0;
+  border-color: #49a8f0;
+  color: #44513f;
+}
+
+.talk-filter__select--basic {
+  background: #fff0b8;
+  border-color: #ddb44a;
+  color: #7a5b00;
+}
+
+.talk-filter__select--pronoun {
+  background: #d8ebff;
+  border-color: #69a9e8;
+  color: #245b93;
+}
+
+.talk-filter__select--verb {
+  background: #ddf6cf;
+  border-color: #7fc65a;
+  color: #3f7b1f;
+}
+
+.talk-filter__select--descriptor {
+  background: #ffdce5;
+  border-color: #e28a9b;
+  color: #9b4457;
+}
+
+.talk-filter__select--custom {
+  background: #fff2c7;
+  border-color: #e1be54;
+  color: #8a6800;
+}
+
+/* Dropdown option colors */
+.talk-filter__select option[value="all"] {
+  background: #f5fff0;
+  color: #44513f;
+}
+
+.talk-filter__select option[value="basic"] {
+  background: #fff0b8;
+  color: #7a5b00;
+}
+
+.talk-filter__select option[value="pronoun"] {
+  background: #d8ebff;
+  color: #245b93;
+}
+
+.talk-filter__select option[value="verb"] {
+  background: #ddf6cf;
+  color: #3f7b1f;
+}
+
+.talk-filter__select option[value="descriptor"] {
+  background: #ffdce5;
+  color: #9b4457;
+}
+
+.talk-filter__select option[value="custom"] {
+  background: #fff2c7;
+  color: #8a6800;
+}
+
+.talk-filter__count {
+  color: #4e5b47;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding-bottom: 8px;
+}
+
+.talk-grid {
+  --talk-cols: 6;
+  --tile-min-height: 230px;
+  --tile-padding: 14px;
+  --tile-gap: 12px;
+  --tile-icon-min-height: 96px;
+  --tile-icon-size: clamp(72px, 6vw, 112px);
+  --tile-nav-icon-size: clamp(88px, 7vw, 132px);
+  --tile-label-size: clamp(1.35rem, 1.7vw, 2.2rem);
+  --tile-nav-label-size: clamp(1.3rem, 1.6vw, 2rem);
+
+  display: grid;
+  grid-template-columns: repeat(var(--talk-cols), minmax(0, 1fr));
+  background: var(--grid-bg);
+  border: 3px solid var(--grid-border);
+}
+
+.talk-grid.is-medium {
+  --tile-min-height: 132px;
+  --tile-padding: 10px;
+  --tile-gap: 8px;
+  --tile-icon-min-height: 58px;
+  --tile-icon-size: clamp(40px, 3.2vw, 68px);
+  --tile-nav-icon-size: clamp(52px, 4vw, 84px);
+  --tile-label-size: clamp(0.9rem, 1vw, 1.35rem);
+  --tile-nav-label-size: clamp(0.95rem, 1.08vw, 1.45rem);
+}
+
+.talk-grid.is-large {
+  --tile-min-height: 90px;
+  --tile-padding: 6px;
+  --tile-gap: 6px;
+  --tile-icon-min-height: 34px;
+  --tile-icon-size: clamp(24px, 2vw, 42px);
+  --tile-nav-icon-size: clamp(34px, 2.6vw, 58px);
+  --tile-label-size: clamp(0.72rem, 0.82vw, 1rem);
+  --tile-nav-label-size: clamp(0.82rem, 0.94vw, 1.08rem);
+}
+
+.talk-tile {
+  min-height: var(--tile-min-height);
+  padding: var(--tile-padding);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tile-gap);
+  background: var(--tile-bg);
+  border: 1.5px solid var(--tile-border);
+  cursor: pointer;
+  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+}
+
+.talk-tile:hover {
+  background: var(--tile-hover);
+}
+
+.talk-tile:active,
+.talk-tile.is-pressed {
+  transform: scale(0.975);
+  background: var(--tile-active);
+}
+
+.talk-tile.is-word {
+  background: var(--tile-category-bg, #f7f7f7);
+  border-color: var(--tile-category-border, #7f7f7f);
+}
+
+.talk-tile.is-word:hover {
+  filter: brightness(0.985);
+}
+
+.talk-tile.is-word:active,
+.talk-tile.is-word.is-pressed {
+  filter: brightness(0.96);
+}
+
+.talk-tile__icon {
+  min-height: var(--tile-icon-min-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.talk-tile__icon-img {
+  width: var(--tile-icon-size);
+  height: var(--tile-icon-size);
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  pointer-events: none;
+}
+
+.talk-tile__label {
+  color: #434343;
+  font-size: var(--tile-label-size);
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  word-break: break-word;
+}
+
+.talk-tile.is-nav .talk-tile__icon-img {
+  width: var(--tile-nav-icon-size);
+  height: var(--tile-nav-icon-size);
+}
+
+.talk-tile.is-nav .talk-tile__label {
+  font-size: var(--tile-nav-label-size);
+}
+
+.talk-tile.is-empty,
+.talk-tile.is-empty-word {
+  background: var(--tile-bg);
+  cursor: default;
+}
+
+.talk-tile.is-empty:hover,
+.talk-tile.is-empty-word:hover {
+  background: var(--tile-bg);
+}
+
+.talk-tile.is-empty-word:active {
+  transform: none;
+}
+
+.talk-tile.is-disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.talk-tile.is-disabled:active,
+.talk-tile.is-disabled.is-pressed {
+  transform: none;
+  background: var(--tile-bg);
+}
+
 .talk-controls {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  margin-bottom: 16px;
+  margin: 16px 0;
 }
 
 .talk-control-btn {
@@ -229,176 +480,12 @@
   paint-order: stroke fill;
 }
 
-.talk-grid {
-  --talk-cols: 6;
-  --tile-min-height: 230px;
-  --tile-padding: 14px;
-  --tile-gap: 12px;
-  --tile-icon-min-height: 96px;
-  --tile-icon-size: clamp(72px, 6vw, 112px);
-  --tile-nav-icon-size: clamp(88px, 7vw, 132px);
-  --tile-label-size: clamp(1.35rem, 1.7vw, 2.2rem);
-  --tile-nav-label-size: clamp(1.3rem, 1.6vw, 2rem);
-
-  display: grid;
-  grid-template-columns: repeat(var(--talk-cols), minmax(0, 1fr));
-  background: var(--grid-bg);
-  border: 3px solid var(--grid-border);
-}
-
-.talk-grid.is-medium {
-  --tile-min-height: 132px;
-  --tile-padding: 10px;
-  --tile-gap: 8px;
-  --tile-icon-min-height: 58px;
-  --tile-icon-size: clamp(40px, 3.2vw, 68px);
-  --tile-nav-icon-size: clamp(52px, 4vw, 84px);
-  --tile-label-size: clamp(0.9rem, 1vw, 1.35rem);
-  --tile-nav-label-size: clamp(0.95rem, 1.08vw, 1.45rem);
-}
-
-.talk-grid.is-large {
-  --tile-min-height: 90px;
-  --tile-padding: 6px;
-  --tile-gap: 6px;
-  --tile-icon-min-height: 34px;
-  --tile-icon-size: clamp(24px, 2vw, 42px);
-  --tile-nav-icon-size: clamp(34px, 2.6vw, 58px);
-  --tile-label-size: clamp(0.72rem, 0.82vw, 1rem);
-  --tile-nav-label-size: clamp(0.82rem, 0.94vw, 1.08rem);
-}
-
-.talk-tile {
-  min-height: var(--tile-min-height);
-  padding: var(--tile-padding);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--tile-gap);
-  background: var(--tile-bg);
-  border: 1.5px solid var(--tile-border);
-  cursor: pointer;
-  transition: transform 0.14s ease, background 0.14s ease, box-shadow 0.14s ease;
-}
-
-.talk-tile:hover {
-  background: var(--tile-hover);
-}
-
-.talk-tile:active,
-.talk-tile.is-pressed {
-  transform: scale(0.975);
-  background: var(--tile-active);
-}
-
-.talk-tile__icon {
-  min-height: var(--tile-icon-min-height);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.talk-tile__icon-img {
-  width: var(--tile-icon-size);
-  height: var(--tile-icon-size);
-  object-fit: contain;
-  display: block;
-  user-select: none;
-  pointer-events: none;
-}
-
-.talk-tile__label {
-  color: #434343;
-  font-size: var(--tile-label-size);
-  font-weight: 700;
-  line-height: 1.1;
-  text-align: center;
-  word-break: break-word;
-}
-
-.talk-tile.is-nav .talk-tile__icon-img {
-  width: var(--tile-nav-icon-size);
-  height: var(--tile-nav-icon-size);
-}
-
-.talk-tile.is-nav .talk-tile__label {
-  font-size: var(--tile-nav-label-size);
-}
-
-.talk-tile.is-empty {
-  background: var(--tile-bg);
-  cursor: default;
-}
-
-.talk-tile.is-empty:hover {
-  background: var(--tile-bg);
-}
-
-.talk-tile.is-disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.talk-tile.is-disabled:active,
-.talk-tile.is-disabled.is-pressed {
-  transform: none;
-  background: var(--tile-bg);
-}
-
-.talk-tile.is-replaceable {
-  box-shadow: inset 0 0 0 4px rgba(74, 168, 240, 0.2);
-}
-
-.talk-placement-bar {
-  margin: 0 0 14px;
-  padding: 12px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  background: rgba(255, 255, 255, 0.65);
-  border: 3px solid #7cae71;
-  border-radius: 18px;
-}
-
-.talk-placement-bar__text {
-  color: #43543b;
-  font-size: 1rem;
-  font-weight: 700;
-}
-
-.talk-placement-bar__actions {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.talk-placement-bar__btn,
-.talk-custom-modal__btn {
-  border: none;
-  border-radius: 999px;
-  padding: 10px 16px;
-  background: #49a8f0;
-  color: #fff;
-  font-family: inherit;
-  font-size: 0.98rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.talk-placement-bar__btn.is-cancel,
-.talk-custom-modal__btn.is-secondary {
-  background: #8b9b82;
-}
-
 .talk-page-indicator {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 8px;
 }
 
 .talk-page-indicator__text {
@@ -424,102 +511,6 @@
   background: #4e5b47;
 }
 
-.talk-custom-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-.talk-custom-modal {
-  width: min(520px, 100%);
-  padding: 22px;
-  background: #f5fff0;
-  border: 4px solid #7cae71;
-  border-radius: 24px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-}
-
-.talk-custom-modal__title {
-  margin: 0 0 16px;
-  color: #41543a;
-  font-size: 1.6rem;
-  text-align: center;
-}
-
-.talk-custom-preview {
-  width: 220px;
-  min-height: 220px;
-  margin: 0 auto 18px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  background: #f7f7f7;
-  border: 2px solid #7f7f7f;
-  border-radius: 18px;
-  box-sizing: border-box;
-}
-
-.talk-custom-preview__icon {
-  min-height: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.talk-custom-preview__img {
-  width: 92px;
-  height: 92px;
-  object-fit: contain;
-  display: block;
-}
-
-.talk-custom-preview__label {
-  color: #434343;
-  font-size: 1.7rem;
-  font-weight: 700;
-  text-align: center;
-  word-break: break-word;
-}
-
-.talk-custom-modal__field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
-  color: #41543a;
-  font-weight: 700;
-}
-
-.talk-custom-modal__field input[type="text"],
-.talk-custom-modal__field input[type="file"] {
-  border: 2px solid #93b387;
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: #fff;
-  font: inherit;
-}
-
-.talk-custom-modal__field small {
-  color: #5d6f55;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.talk-custom-modal__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 18px;
-}
-
 @media (max-width: 1400px) {
   .talk-control-btn {
     --control-border: 6px;
@@ -536,7 +527,19 @@
 
 @media (max-width: 900px) {
   .talk-controls {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .talk-filter-row {
+    align-items: stretch;
+  }
+
+  .talk-filter {
+    width: 100%;
+  }
+
+  .talk-filter__select {
+    width: 100%;
   }
 }
 
@@ -547,14 +550,12 @@
 
   .talk-board-shell {
     width: calc(100vw - 20px);
-    padding: 18px 12px 12px;
+    padding: 12px;
   }
 
-  .talk-home-badge {
-    position: static;
-    margin-left: auto;
-    margin-bottom: 12px;
-    width: fit-content;
+  .talk-top-bar {
+    flex-wrap: wrap;
+    align-items: center;
   }
 
   .talk-sentence-bar {
@@ -607,16 +608,6 @@
     --tile-nav-label-size: 0.56rem;
   }
 
-  .talk-placement-bar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .talk-placement-bar__actions {
-    width: 100%;
-    flex-direction: column;
-  }
-
   .talk-page-indicator {
     margin-top: 12px;
     gap: 6px;
@@ -629,22 +620,5 @@
   .talk-page-indicator__dot {
     width: 10px;
     height: 10px;
-  }
-
-  .talk-custom-modal {
-    padding: 18px;
-  }
-
-  .talk-custom-preview {
-    width: 100%;
-    min-height: 200px;
-  }
-
-  .talk-custom-preview__label {
-    font-size: 1.45rem;
-  }
-
-  .talk-custom-modal__actions {
-    flex-direction: column;
   }
 }
