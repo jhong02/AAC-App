@@ -119,15 +119,24 @@ export default function StatsPage() {
             </button>
         </div>
 
-        <div className="stats-section">
-            <h2>Profile:</h2>
-            <p>{safeStats.name}</p>
+        <div className="stats-row">
+            <div className="stats-section small">
+              <h2>Profile:</h2>
+              <p>{safeStats.name}</p>
 
-            <h2>Session Time:</h2>
-            <p>{formatTime(safeStats.sessionTime)}</p>
+            </div>
+
+            <div className="stats-section small">
+
+              <h2>Session Time:</h2>
+              <p>{formatTime(safeStats.sessionTime)}</p>
+            </div>
+
         </div>
 
-        <div className="stats-section">
+
+        <div className="stats-row">
+          <div className="stats-section small">
 
             <h2>Top Words</h2>
 
@@ -167,7 +176,7 @@ export default function StatsPage() {
         </div>
 
 
-        <div className="stats-section">
+        <div className="stats-section small">
           <h2>Top Categories</h2>
 
           {safeStats.categories?.length === 0 ? (
@@ -194,6 +203,7 @@ export default function StatsPage() {
           )}
         </div>
 
+      </div>
 
       </div>
     </div>

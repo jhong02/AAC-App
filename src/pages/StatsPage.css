@@ -23,7 +23,7 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   padding: 36px 40px;
   width: 100%;
-  max-width: 800px;
+  max-width: 900px;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -44,7 +44,7 @@
   font-weight: 800;
   color: #6ee0ac;
   flex: 1;
-  text-align: center;
+  text-align: Center;
 }
 
 .stats-header h2 {
@@ -81,6 +81,16 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 24px;
+}
+
+.stats-section.small{
+  flex: 1; /* equal width boxes */
+  text-align: center;
 }
 
 
