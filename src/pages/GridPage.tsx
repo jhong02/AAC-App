@@ -698,7 +698,7 @@ export default function GridPage() {
 
         <div className="grid-settings-header">
           <div>
-            <h1 className="grid-settings-title">Grid Settings</h1>
+            <h1 className="grid-settings-title">🔠 Grid Settings</h1>
             <p className="grid-settings-subtitle">
               Change the board layout and manage custom tiles here.
             </p>
