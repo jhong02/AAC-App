@@ -1,185 +1,197 @@
-/* ─── Audio Page Layout ─────────────────────────────────────────── */
 .audio-page {
+  --white: #fff;
+  --app-bg: #bde8a8;
+  --shell-bg: #a9df93;
+  --shell-border: #7cae71;
+  --panel-bg: rgba(255, 255, 255, 0.62);
+  --panel-border: #7cae71;
+  --text-dark: #43543b;
+  --text-soft: #5d6f55;
+  --home-blue: #49a8f0;
+  --mint: #6ee0ac;
+  --mint-dark: #45b581;
+  --yellow: #f1d64d;
+  --yellow-dark: #bea62e;
+  --red: #ee7d67;
+  --red-dark: #cb5f4d;
+  --purple: #9a82f6;
+
   min-height: 100vh;
-  width: 100vw;
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 40px 16px;
-  background: #b8f0a9;
+  background: var(--app-bg);
+  font-family: "Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.audio-shell {
+  width: min(980px, calc(100vw - 32px));
+  padding: 16px 18px 22px;
   box-sizing: border-box;
-  position: relative;
-  overflow: hidden;
+  background: var(--shell-bg);
+  border: 3px solid var(--shell-border);
+  border-radius: 14px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
-/* Decorative cloud overrides (reuse .cloud from global.css) */
-.audio-page .cloud1 { top: 10%; left: 8%; }
-.audio-page .cloud2 { bottom: 40%; left: 90%; transform: scaleX(-1); }
-
-/* ─── Card ──────────────────────────────────────────────────────── */
-.audio-card {
-  background: white;
-  border-radius: 28px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-  padding: 36px 40px;
-  width: 100%;
-  max-width: 560px;
+.audio-top-row {
   display: flex;
-  flex-direction: column;
-  gap: 28px;
-  position: relative;
-  z-index: 1;
+  justify-content: flex-start;
+  margin-bottom: 14px;
 }
 
-/* ─── Header ────────────────────────────────────────────────────── */
-.audio-header {
-  display: flex;
+.audio-back-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 16px;
+  gap: 7px;
+  padding: 10px 16px;
+  color: #474747;
+  background: #9fe6a6;
+  border: 3px solid var(--white);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
+  cursor: pointer;
 }
 
-.audio-header h1 {
-  margin: 0;
-  font-size: 28px;
-  font-weight: 800;
-  color: #ffcf4d;
-  flex: 1;
+.audio-hero {
+  margin-bottom: 18px;
   text-align: center;
 }
 
-.audio-back-btn {
-  background: #f3f4f6;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 8px 14px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #374151;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-  flex-shrink: 0;
+.audio-hero h1 {
+  margin: 0 0 6px;
+  color: #41543a;
+  font-size: clamp(2rem, 3vw, 3rem);
+  line-height: 1;
 }
 
-.audio-back-btn:hover {
-  background: #e5e7eb;
+.audio-hero p {
+  margin: 0;
+  color: #55704b;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
-/* ─── Section Block ─────────────────────────────────────────────── */
-.audio-section {
-  background: #f0fdf4;
-  border: 2px solid #bbf7d0;
-  border-radius: 20px;
-  padding: 20px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.audio-panel {
+  margin-bottom: 14px;
+  padding: 18px 20px;
+  background: var(--panel-bg);
+  border: 3px solid var(--panel-border);
+  border-radius: 22px;
+  box-sizing: border-box;
 }
 
 .audio-section-label {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 18px;
+  margin-bottom: 14px;
+  color: var(--text-dark);
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #1f2937;
 }
 
 .audio-section-icon {
-  font-size: 22px;
+  font-size: 1.35rem;
   line-height: 1;
 }
 
-/* ─── Value Badge ───────────────────────────────────────────────── */
-.audio-value-badge {
+.audio-value-badge,
+.audio-placeholder-tag,
+.voice-local-tag {
   margin-left: auto;
-  background: #6ee0ac;
-  color: white;
-  font-size: 13px;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
   font-weight: 800;
-  padding: 4px 12px;
-  border-radius: 20px;
-  min-width: 70px;
-  text-align: center;
+  line-height: 1;
 }
 
-/* ─── Slider ────────────────────────────────────────────────────── */
+.audio-value-badge {
+  background: var(--mint);
+  color: var(--white);
+}
+
+.audio-placeholder-tag {
+  background: #fde68a;
+  color: #92400e;
+}
+
 .audio-slider {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
-  height: 12px;
+  height: 14px;
   border-radius: 999px;
   outline: none;
   cursor: pointer;
   border: none;
 }
 
-/* Volume slider — green track */
 .volume-slider {
-  background: linear-gradient(to right, #6ee0ac 0%, #6ee0ac var(--val, 80%), #d1fae5 var(--val, 80%), #d1fae5 100%);
+  background: linear-gradient(
+    to right,
+    var(--mint) 0%,
+    var(--mint) var(--val, 80%),
+    #dff8eb var(--val, 80%),
+    #dff8eb 100%
+  );
 }
 
-/* Speed slider — purple/blue track */
 .speed-slider {
-  background: linear-gradient(to right, #a78bfa 0%, #a78bfa var(--val, 50%), #ede9fe var(--val, 50%), #ede9fe 100%);
+  background: linear-gradient(
+    to right,
+    var(--purple) 0%,
+    var(--purple) var(--val, 50%),
+    #ece7ff var(--val, 50%),
+    #ece7ff 100%
+  );
 }
 
-/* Thumb styling */
 .audio-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
-  border: 3px solid #6ee0ac;
+  background: var(--white);
+  border: 3px solid var(--mint);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
-  transition: transform 0.1s;
 }
 
 .speed-slider::-webkit-slider-thumb {
-  border-color: #a78bfa;
-}
-
-.audio-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.15);
+  border-color: var(--purple);
 }
 
 .audio-slider::-moz-range-thumb {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
-  border: 3px solid #6ee0ac;
+  background: var(--white);
+  border: 3px solid var(--mint);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;
 }
 
 .speed-slider::-moz-range-thumb {
-  border-color: #a78bfa;
+  border-color: var(--purple);
 }
 
-/* Tick labels */
 .audio-slider-ticks {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
-  color: #6b7280;
+  margin-top: 8px;
+  color: var(--text-soft);
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 0 2px;
-}
-
-/* ─── Voice Selection ───────────────────────────────────────────── */
-.audio-placeholder-tag {
-  margin-left: auto;
-  background: #fde68a;
-  color: #92400e;
-  font-size: 12px;
-  font-weight: 800;
-  padding: 4px 10px;
-  border-radius: 20px;
 }
 
 .voice-options {
@@ -189,71 +201,109 @@
 }
 
 .voice-option-btn {
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 12px 16px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #9ca3af;
-  cursor: not-allowed;
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #cfd8ca;
+  border-radius: 16px;
+  background: #f8fff4;
+  color: #4b5d43;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
   text-align: left;
-  transition: background 0.15s, border-color 0.15s;
-  opacity: 0.7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: transform 0.12s ease, filter 0.12s ease, border-color 0.12s ease;
+}
+
+.voice-option-btn:hover {
+  filter: brightness(0.99);
 }
 
 .voice-option-btn.selected {
-  background: #ede9fe;
-  border-color: #a78bfa;
-  color: #5b21b6;
+  background: #e7f1ff;
+  border-color: #73aeea;
+  color: #2c5f95;
+}
+
+.voice-local-tag {
+  margin-left: 0;
+  background: #d7f7de;
+  color: #35744b;
 }
 
 .audio-placeholder-note {
   margin: 0;
-  font-size: 12px;
-  color: #9ca3af;
-  font-style: italic;
-  text-align: center;
+  color: #6c7f63;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
-/* ─── Save Button ───────────────────────────────────────────────── */
-.btn-third.audio-save {
-  background: #6ee0ac;
+.audio-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
 }
 
-.btn-third.audio-save:hover {
-  background: #4fb185;
-  transform: translateY(-1px);
+.audio-action-btn {
+  min-height: 56px;
+  border: 3px solid var(--white);
+  border-radius: 999px;
+  color: var(--white);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
 }
 
-.btn-third.audio-save:active {
-  transform: translateY(1px);
+.audio-action-btn:hover {
+  filter: brightness(1.02);
 }
 
-
-.btn-third.audio-preview {
-  background: #ecea6f;
+.audio-action-btn:active {
+  transform: translateY(2px);
 }
 
-.btn-third.audio-preview:hover {
-  background: #bdbb5c;
-  transform: translateY(-1px);
+.audio-action-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
 }
 
-.btn-third.audio-preview:active {
-  transform: translateY(1px);
+.audio-action-btn.is-preview {
+  background: var(--yellow);
+  color: #765d00;
 }
 
-
-.btn-third.audio-reset {
-  background: #ec7965;
+.audio-action-btn.is-reset {
+  background: var(--red);
 }
 
-.btn-third.audio-reset:hover {
-  background: #bd5c4b;
-  transform: translateY(-1px);
+.audio-action-btn.is-save {
+  background: var(--mint);
 }
 
-.btn-third.audio-reset:active {
-  transform: translateY(1px);
+@media (max-width: 700px) {
+  .audio-page {
+    padding: 10px;
+  }
+
+  .audio-shell {
+    width: calc(100vw - 20px);
+    padding: 12px;
+  }
+
+  .audio-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .audio-section-label {
+    flex-wrap: wrap;
+  }
 }

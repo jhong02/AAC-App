@@ -1,16 +1,19 @@
-/**
- * TalkPage.tsx
- */
-
 import {
   useState,
   useEffect,
   useMemo,
+  useRef,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/talkpage.css";
-import { speakWithSettings } from "../hooks/useTTSSettings";
+import {
+  speakWithSettings,
+  speakTileWordInstant,
+  syncRuntimeTTSSettingsFromDB,
+  primeTTSVoices,
+} from "../hooks/useTTSSettings";
 import { useDatabase } from "../hooks/useDatabase";
 import { getCategories } from "../db/wordRepository";
 import {
@@ -23,6 +26,13 @@ import { useSessionLogger } from "../hooks/useSessionLogger";
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
 import homeIcon from "../assets/images/icons/home.png";
+
+import gridTapSound from "../assets/sounds/grid_tap.wav";
+import uiBackPageSound from "../assets/sounds/ui_back_page.wav";
+import uiNextPageSound from "../assets/sounds/ui_next_page.wav";
+import uiCategoryBarSound from "../assets/sounds/ui_category_bar_open.wav";
+import uiUndoButtonSound from "../assets/sounds/ui_undo_button.wav";
+import uiClearButtonSound from "../assets/sounds/ui_clear_button.wav";
 
 type TalkAction = "undo" | "clear" | "fill" | "speak";
 
@@ -50,6 +60,19 @@ type EmptyTile = {
 };
 
 type RenderTile = WordTile | NavTile | EmptyTile;
+
+type CategoryOption = {
+  value: string;
+  label: string;
+};
+
+type SoundKey =
+  | "gridTap"
+  | "backPage"
+  | "nextPage"
+  | "categoryBar"
+  | "undo"
+  | "clear";
 
 const TALK_CONTROLS: TalkControl[] = [
   {
@@ -194,6 +217,13 @@ function getCategoryTheme(category?: string): CSSProperties {
   }
 }
 
+function createUiAudio(src: string) {
+  const audio = new Audio(src);
+  audio.preload = "auto";
+  audio.volume = 1;
+  return audio;
+}
+
 const TalkPage = () => {
   const navigate = useNavigate();
 
@@ -207,8 +237,52 @@ const TalkPage = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+  const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
+  const [highlightedCategoryIndex, setHighlightedCategoryIndex] = useState(0);
+
+  const categoryMenuRef = useRef<HTMLDivElement | null>(null);
+  const categoryTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const soundBankRef = useRef<Record<SoundKey, HTMLAudioElement> | null>(null);
 
   const displayedSentence = sentenceWords.join(" ");
+
+  useEffect(() => {
+    soundBankRef.current = {
+      gridTap: createUiAudio(gridTapSound),
+      backPage: createUiAudio(uiBackPageSound),
+      nextPage: createUiAudio(uiNextPageSound),
+      categoryBar: createUiAudio(uiCategoryBarSound),
+      undo: createUiAudio(uiUndoButtonSound),
+      clear: createUiAudio(uiClearButtonSound),
+    };
+
+    return () => {
+      const bank = soundBankRef.current;
+      if (!bank) return;
+
+      Object.values(bank).forEach((audio) => {
+        audio.pause();
+        audio.src = "";
+      });
+    };
+  }, []);
+
+  useEffect(() => {
+    primeTTSVoices();
+
+    if (db) {
+      syncRuntimeTTSSettingsFromDB(db);
+    }
+  }, [db]);
+
+  const playSound = (key: SoundKey) => {
+    const audio = soundBankRef.current?.[key];
+    if (!audio) return;
+
+    audio.pause();
+    audio.currentTime = 0;
+    audio.play().catch(() => {});
+  };
 
   useEffect(() => {
     const boardCategories = Array.from(
@@ -236,10 +310,48 @@ const TalkPage = () => {
   }, [db, boardTiles]);
 
   useEffect(() => {
-    if (selectedCategory !== "all" && !categoryOptions.includes(selectedCategory)) {
+    if (
+      selectedCategory !== "all" &&
+      !categoryOptions.includes(selectedCategory)
+    ) {
       setSelectedCategory("all");
     }
   }, [categoryOptions, selectedCategory]);
+
+  const menuOptions = useMemo<CategoryOption[]>(
+    () => [
+      { value: "all", label: "All Categories" },
+      ...categoryOptions.map((category) => ({
+        value: category,
+        label: formatCategoryLabel(category),
+      })),
+    ],
+    [categoryOptions]
+  );
+
+  useEffect(() => {
+    if (!isCategoryMenuOpen) return;
+
+    const selectedIndex = menuOptions.findIndex(
+      (option) => option.value === selectedCategory
+    );
+
+    setHighlightedCategoryIndex(selectedIndex >= 0 ? selectedIndex : 0);
+  }, [isCategoryMenuOpen, menuOptions, selectedCategory]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (
+        categoryMenuRef.current &&
+        !categoryMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsCategoryMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const filteredBoardTiles = useMemo(() => {
     if (selectedCategory === "all") return boardTiles;
@@ -298,7 +410,9 @@ const TalkPage = () => {
   const handleWordTap = (tile: WordTile) => {
     if (isBlankTile(tile)) return;
 
+    playSound("gridTap");
     markPressed(tile.id);
+    speakTileWordInstant(tile.value, undefined, db ?? undefined);
 
     setSentenceWords((prev) => {
       logTap(tile.value, prev.length);
@@ -309,6 +423,7 @@ const TalkPage = () => {
   const handleNavTap = (tile: NavTile) => {
     if (tile.disabled) return;
 
+    playSound(tile.action === "previous" ? "backPage" : "nextPage");
     markPressed(tile.id);
 
     setCurrentPage((prev) => {
@@ -322,9 +437,11 @@ const TalkPage = () => {
 
     switch (action) {
       case "undo":
+        playSound("undo");
         setSentenceWords((prev) => prev.slice(0, -1));
         break;
       case "clear":
+        playSound("clear");
         setSentenceWords([]);
         break;
       case "fill":
@@ -340,6 +457,98 @@ const TalkPage = () => {
   const handleSentenceBarClick = () => {
     speakText(displayedSentence);
   };
+
+  const openCategoryMenu = () => {
+    playSound("categoryBar");
+    setIsCategoryMenuOpen(true);
+  };
+
+  const closeCategoryMenu = () => {
+    setIsCategoryMenuOpen(false);
+  };
+
+  const toggleCategoryMenu = () => {
+    if (isCategoryMenuOpen) {
+      closeCategoryMenu();
+      return;
+    }
+    openCategoryMenu();
+  };
+
+  const handleCategorySelect = (category: string) => {
+    playSound("categoryBar");
+    setSelectedCategory(category);
+    closeCategoryMenu();
+    categoryTriggerRef.current?.focus();
+  };
+
+  const handleCategoryKeyDown = (
+    event: ReactKeyboardEvent<HTMLButtonElement>
+  ) => {
+    if (!menuOptions.length) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!isCategoryMenuOpen) {
+        openCategoryMenu();
+        return;
+      }
+      setHighlightedCategoryIndex((prev) => (prev + 1) % menuOptions.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!isCategoryMenuOpen) {
+        openCategoryMenu();
+        return;
+      }
+      setHighlightedCategoryIndex(
+        (prev) => (prev - 1 + menuOptions.length) % menuOptions.length
+      );
+      return;
+    }
+
+    if (event.key === "Home") {
+      if (!isCategoryMenuOpen) return;
+      event.preventDefault();
+      setHighlightedCategoryIndex(0);
+      return;
+    }
+
+    if (event.key === "End") {
+      if (!isCategoryMenuOpen) return;
+      event.preventDefault();
+      setHighlightedCategoryIndex(menuOptions.length - 1);
+      return;
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+
+      if (!isCategoryMenuOpen) {
+        openCategoryMenu();
+        return;
+      }
+
+      const option = menuOptions[highlightedCategoryIndex];
+      if (option) {
+        handleCategorySelect(option.value);
+      }
+      return;
+    }
+
+    if (event.key === "Escape") {
+      if (!isCategoryMenuOpen) return;
+      event.preventDefault();
+      closeCategoryMenu();
+    }
+  };
+
+  const selectedCategoryLabel =
+    selectedCategory === "all"
+      ? "All Categories"
+      : formatCategoryLabel(selectedCategory);
 
   return (
     <section className="talk-page">
@@ -377,22 +586,60 @@ const TalkPage = () => {
         </button>
 
         <div className="talk-filter-row">
-            <label className="talk-filter">
-              <span className="talk-filter__label">Category</span>
-              <select
-                className={`talk-filter__select talk-filter__select--${selectedCategory}`}
-                value={selectedCategory}
-                onChange={(event) => setSelectedCategory(event.target.value)}
+          <div className="talk-filter" ref={categoryMenuRef}>
+            <span className="talk-filter__label">Category</span>
+
+            <div className="talk-filter__dropdown">
+              <button
+                ref={categoryTriggerRef}
+                type="button"
+                className={`talk-filter__trigger talk-filter__trigger--${selectedCategory} ${
+                  isCategoryMenuOpen ? "is-open" : ""
+                }`}
+                onClick={toggleCategoryMenu}
+                onKeyDown={handleCategoryKeyDown}
+                aria-haspopup="listbox"
+                aria-expanded={isCategoryMenuOpen}
+              >
+                <span>{selectedCategoryLabel}</span>
+                <span className="talk-filter__chevron" aria-hidden="true">
+                  ▾
+                </span>
+              </button>
+
+              <div
+                className={`talk-filter__menu ${
+                  isCategoryMenuOpen ? "is-open" : ""
+                }`}
+                role="listbox"
                 aria-label="Filter words by category"
               >
-                <option value="all">All Categories</option>
-                {categoryOptions.map((category) => (
-                  <option key={category} value={category}>
-                    {formatCategoryLabel(category)}
-                  </option>
+                {menuOptions.map((option, index) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    className={`talk-filter__menu-button talk-filter__menu-button--${option.value} ${
+                      selectedCategory === option.value ? "is-selected" : ""
+                    } ${
+                      highlightedCategoryIndex === index ? "is-highlighted" : ""
+                    }`}
+                    onClick={() => handleCategorySelect(option.value)}
+                    onMouseEnter={() => setHighlightedCategoryIndex(index)}
+                  >
+                    <span className="talk-filter__menu-text">{option.label}</span>
+                    <span
+                      className={`talk-filter__menu-check ${
+                        selectedCategory === option.value ? "is-visible" : ""
+                      }`}
+                      aria-hidden="true"
+                    >
+                      ✓
+                    </span>
+                  </button>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
+          </div>
 
           <span className="talk-filter__count">
             {visibleWordCount} word{visibleWordCount === 1 ? "" : "s"}
@@ -454,9 +701,9 @@ const TalkPage = () => {
               <button
                 key={tile.id}
                 type="button"
-                className={`talk-tile is-word is-category-${tile.category ?? "default"} ${
-                  lastPressedId === tile.id ? "is-pressed" : ""
-                }`}
+                className={`talk-tile is-word is-category-${
+                  tile.category ?? "default"
+                } ${lastPressedId === tile.id ? "is-pressed" : ""}`}
                 style={getCategoryTheme(tile.category)}
                 onClick={() => handleWordTap(tile)}
                 aria-label={tile.label}

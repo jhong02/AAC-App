@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioSettings } from "../hooks/useAudioSettings";
 import "./AudioPage.css";
@@ -7,51 +7,63 @@ export default function AudioPage() {
   const navigate = useNavigate();
 
   const {
-    volume, setVolume,
-    rate, setRate,
-    voiceURI, setVoiceURI,
-    save, preview, reset,
-    ready, savedBadge,
+    volume,
+    setVolume,
+    rate,
+    setRate,
+    voiceURI,
+    setVoiceURI,
+    save,
+    preview,
+    reset,
+    ready,
+    savedBadge,
   } = useAudioSettings();
 
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
-  // Load available voices from Web Speech API
   useEffect(() => {
     const load = () => {
       const available = window.speechSynthesis
         .getVoices()
-        .filter((v) => v.lang.startsWith("en"));
+        .filter((voice) => voice.lang.startsWith("en"));
       setVoices(available);
     };
+
     load();
     window.speechSynthesis.addEventListener("voiceschanged", load);
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", load);
+
+    return () =>
+      window.speechSynthesis.removeEventListener("voiceschanged", load);
   }, []);
 
   const speedLabel = (val: number) => {
-    if (val <= 0.6)  return "Very Slow";
+    if (val <= 0.6) return "Very Slow";
     if (val <= 0.85) return "Slow";
     if (val <= 1.15) return "Normal";
-    if (val <= 1.4)  return "Fast";
+    if (val <= 1.4) return "Fast";
     return "Very Fast";
   };
 
   return (
-    <div className="audio-page">
-      <div className="cloud cloud1" />
-      <div className="cloud cloud2" />
-
-      <div className="audio-card">
-        <div className="audio-header">
-          <button className="audio-back-btn" onClick={() => navigate("/user-config")}>
-            ← Back
+    <section className="audio-page">
+      <div className="audio-shell">
+        <div className="audio-top-row">
+          <button
+            type="button"
+            className="audio-back-badge"
+            onClick={() => navigate("/user-config")}
+          >
+            ← Back to Config
           </button>
-          <h1 className="text-outline">🔊 Audio Settings</h1>
         </div>
 
-        {/* Volume */}
-        <div className="audio-section">
+        <header className="audio-hero">
+          <h1>Audio Settings</h1>
+          <p>Choose how the board speaks words and sentences.</p>
+        </header>
+
+        <section className="audio-panel">
           <div className="audio-section-label">
             <span className="audio-section-icon">
               {volume === 0 ? "🔇" : volume < 50 ? "🔉" : "🔊"}
@@ -59,6 +71,7 @@ export default function AudioPage() {
             <span>Volume</span>
             <span className="audio-value-badge">{volume}%</span>
           </div>
+
           <input
             type="range"
             className="audio-slider volume-slider"
@@ -66,23 +79,24 @@ export default function AudioPage() {
             max={100}
             step={1}
             value={volume}
-            style={{ "--val": `${volume}%` } as React.CSSProperties}
+            style={{ "--val": `${volume}%` } as CSSProperties}
             onChange={(e) => setVolume(Number(e.target.value))}
           />
+
           <div className="audio-slider-ticks">
             <span>0%</span>
             <span>50%</span>
             <span>100%</span>
           </div>
-        </div>
+        </section>
 
-        {/* Speech Speed */}
-        <div className="audio-section">
+        <section className="audio-panel">
           <div className="audio-section-label">
             <span className="audio-section-icon">⚡</span>
             <span>Speech Speed</span>
             <span className="audio-value-badge">{speedLabel(rate)}</span>
           </div>
+
           <input
             type="range"
             className="audio-slider speed-slider"
@@ -90,18 +104,22 @@ export default function AudioPage() {
             max={1.75}
             step={0.05}
             value={rate}
-            style={{ "--val": `${((rate - 0.5) / (1.75 - 0.5)) * 100}%` } as React.CSSProperties}
+            style={
+              {
+                "--val": `${((rate - 0.5) / (1.75 - 0.5)) * 100}%`,
+              } as CSSProperties
+            }
             onChange={(e) => setRate(Number(e.target.value))}
           />
+
           <div className="audio-slider-ticks">
             <span>Slower</span>
             <span>Normal</span>
             <span>Faster</span>
           </div>
-        </div>
+        </section>
 
-        {/* Voice Selection */}
-        <div className="audio-section">
+        <section className="audio-panel">
           <div className="audio-section-label">
             <span className="audio-section-icon">🎙️</span>
             <span>Voice</span>
@@ -113,19 +131,24 @@ export default function AudioPage() {
           {voices.length > 0 ? (
             <div className="voice-options">
               <button
+                type="button"
                 className={`voice-option-btn ${voiceURI === "" ? "selected" : ""}`}
                 onClick={() => setVoiceURI("")}
               >
-                🎤 Browser Default
+                <span>Browser Default</span>
               </button>
-              {voices.map((v) => (
+
+              {voices.map((voice) => (
                 <button
-                  key={v.voiceURI}
-                  className={`voice-option-btn ${voiceURI === v.voiceURI ? "selected" : ""}`}
-                  onClick={() => setVoiceURI(v.voiceURI)}
+                  type="button"
+                  key={voice.voiceURI}
+                  className={`voice-option-btn ${
+                    voiceURI === voice.voiceURI ? "selected" : ""
+                  }`}
+                  onClick={() => setVoiceURI(voice.voiceURI)}
                 >
-                  🎤 {v.name}
-                  {v.localService && (
+                  <span>{voice.name}</span>
+                  {voice.localService && (
                     <span className="voice-local-tag">device</span>
                   )}
                 </button>
@@ -136,21 +159,27 @@ export default function AudioPage() {
               Voices are loading — they should appear in a moment.
             </p>
           )}
-        </div>
+        </section>
 
-        {/* Action Buttons */}
         <div className="audio-actions">
-          <button className="btn-third audio-preview" onClick={preview}>
+          <button type="button" className="audio-action-btn is-preview" onClick={preview}>
             ▶ Preview
           </button>
-          <button className="btn-third audio-reset" onClick={reset}>
+
+          <button type="button" className="audio-action-btn is-reset" onClick={reset}>
             ↺ Reset
           </button>
-          <button className="btn-third audio-save" onClick={save} disabled={!ready}>
+
+          <button
+            type="button"
+            className="audio-action-btn is-save"
+            onClick={save}
+            disabled={!ready}
+          >
             {savedBadge ? "✓ Saved!" : "💾 Save"}
           </button>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

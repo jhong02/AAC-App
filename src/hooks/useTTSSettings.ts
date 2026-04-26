@@ -1,13 +1,3 @@
-/**
- * useTTSSettings.ts
- *
- * TTS settings are stored in the SQLite database (settings table)
- * via getSetting/setSetting from abaRepository.
- *
- * speakWithSettings reads from the database at speak time so
- * TalkPage always uses the latest saved settings.
- */
-
 import type { Database } from "sql.js";
 import { getSetting, setSetting } from "../db/abaRepository";
 
@@ -25,59 +15,158 @@ export const DEFAULT_TTS_SETTINGS: TTSSettings = {
 
 const PROFILE_ID = "__global__";
 
-// ─── Database read/write ───────────────────────────────────────────
+let runtimeSettings: TTSSettings = { ...DEFAULT_TTS_SETTINGS };
+let runtimeSettingsLoaded = false;
+
+let cachedVoices: SpeechSynthesisVoice[] = [];
+let voiceListenerAttached = false;
+
+function hasSpeechSupport(): boolean {
+  return typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+function refreshVoiceCache(): SpeechSynthesisVoice[] {
+  if (!hasSpeechSupport()) return [];
+  cachedVoices = window.speechSynthesis.getVoices();
+  return cachedVoices;
+}
+
+export function primeTTSVoices(): void {
+  if (!hasSpeechSupport()) return;
+
+  refreshVoiceCache();
+
+  if (voiceListenerAttached) return;
+
+  const handleVoicesChanged = () => {
+    refreshVoiceCache();
+  };
+
+  window.speechSynthesis.addEventListener("voiceschanged", handleVoicesChanged);
+  voiceListenerAttached = true;
+}
+
+function resolveVoice(voiceURI: string): SpeechSynthesisVoice | null {
+  if (!voiceURI) return null;
+
+  const voices = refreshVoiceCache();
+  return voices.find((voice) => voice.voiceURI === voiceURI) ?? null;
+}
 
 export function loadTTSSettingsFromDB(db: Database): TTSSettings {
   return {
-    volume:   getSetting<number>(db,  "tts_volume",   PROFILE_ID, DEFAULT_TTS_SETTINGS.volume)   ?? DEFAULT_TTS_SETTINGS.volume,
-    rate:     getSetting<number>(db,  "tts_rate",     PROFILE_ID, DEFAULT_TTS_SETTINGS.rate)     ?? DEFAULT_TTS_SETTINGS.rate,
-    voiceURI: getSetting<string>(db,  "tts_voiceURI", PROFILE_ID, DEFAULT_TTS_SETTINGS.voiceURI) ?? DEFAULT_TTS_SETTINGS.voiceURI,
+    volume:
+      getSetting<number>(
+        db,
+        "tts_volume",
+        PROFILE_ID,
+        DEFAULT_TTS_SETTINGS.volume
+      ) ?? DEFAULT_TTS_SETTINGS.volume,
+    rate:
+      getSetting<number>(
+        db,
+        "tts_rate",
+        PROFILE_ID,
+        DEFAULT_TTS_SETTINGS.rate
+      ) ?? DEFAULT_TTS_SETTINGS.rate,
+    voiceURI:
+      getSetting<string>(
+        db,
+        "tts_voiceURI",
+        PROFILE_ID,
+        DEFAULT_TTS_SETTINGS.voiceURI
+      ) ?? DEFAULT_TTS_SETTINGS.voiceURI,
   };
 }
 
 export function saveTTSSettingsToDB(db: Database, settings: TTSSettings): void {
-  setSetting(db, "tts_volume",   settings.volume,   PROFILE_ID);
-  setSetting(db, "tts_rate",     settings.rate,     PROFILE_ID);
+  setSetting(db, "tts_volume", settings.volume, PROFILE_ID);
+  setSetting(db, "tts_rate", settings.rate, PROFILE_ID);
   setSetting(db, "tts_voiceURI", settings.voiceURI, PROFILE_ID);
+
+  runtimeSettings = { ...settings };
+  runtimeSettingsLoaded = true;
 }
 
-// ─── Speak (used by TalkPage) ──────────────────────────────────────
-// Reads settings from db if available, falls back to defaults
+export function setRuntimeTTSSettings(settings: TTSSettings): void {
+  runtimeSettings = { ...settings };
+  runtimeSettingsLoaded = true;
+}
+
+export function syncRuntimeTTSSettingsFromDB(db: Database): TTSSettings {
+  const settings = loadTTSSettingsFromDB(db);
+  runtimeSettings = { ...settings };
+  runtimeSettingsLoaded = true;
+  return settings;
+}
+
+function getEffectiveTTSSettings(
+  db?: Database,
+  overrides?: Partial<TTSSettings>
+): TTSSettings {
+  let base = runtimeSettings;
+
+  if (!runtimeSettingsLoaded && db) {
+    base = loadTTSSettingsFromDB(db);
+    runtimeSettings = { ...base };
+    runtimeSettingsLoaded = true;
+  }
+
+  return { ...base, ...overrides };
+}
+
+function buildUtterance(text: string, settings: TTSSettings) {
+  const utterance = new SpeechSynthesisUtterance(text.trim());
+  utterance.volume = settings.volume / 100;
+  utterance.rate = settings.rate;
+  utterance.pitch = 1;
+
+  const voice = resolveVoice(settings.voiceURI);
+  if (voice) {
+    utterance.voice = voice;
+    utterance.lang = voice.lang;
+  } else {
+    utterance.lang = "en-US";
+  }
+
+  return utterance;
+}
+
+function speakNow(
+  text: string,
+  settings: TTSSettings,
+  options?: { interrupt?: boolean }
+): void {
+  if (!text.trim()) return;
+  if (!hasSpeechSupport()) return;
+
+  primeTTSVoices();
+
+  const synth = window.speechSynthesis;
+  const interrupt = options?.interrupt ?? true;
+
+  if (interrupt && (synth.speaking || synth.pending)) {
+    synth.cancel();
+  }
+
+  const utterance = buildUtterance(text, settings);
+  synth.speak(utterance);
+}
 
 export function speakWithSettings(
   text: string,
   overrides?: Partial<TTSSettings>,
   db?: Database
 ): void {
-  if (!text.trim()) return;
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+  const settings = getEffectiveTTSSettings(db, overrides);
+  speakNow(text, settings, { interrupt: true });
+}
 
-  const base = db ? loadTTSSettingsFromDB(db) : DEFAULT_TTS_SETTINGS;
-  const settings = { ...base, ...overrides };
-
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(text); 
-  utterance.volume = settings.volume / 100;
-  utterance.rate   = settings.rate;
-  utterance.pitch  = 1;
-
-  if (settings.voiceURI) {
-    const voices = window.speechSynthesis.getVoices();
-    const match  = voices.find((v) => v.voiceURI === settings.voiceURI);
-    if (match) {
-      utterance.voice = match;
-    } else {
-      // Voices not loaded yet — wait and retry once
-      window.speechSynthesis.addEventListener("voiceschanged", () => {
-        const retryVoices = window.speechSynthesis.getVoices();
-        const retryMatch  = retryVoices.find((v) => v.voiceURI === settings.voiceURI);
-        if (retryMatch) utterance.voice = retryMatch;
-        window.speechSynthesis.speak(utterance);
-      }, { once: true });
-      return;
-    }
-  }
-
-  window.speechSynthesis.speak(utterance);
+export function speakTileWordInstant(
+  text: string,
+  overrides?: Partial<TTSSettings>,
+  db?: Database
+): void {
+  const settings = getEffectiveTTSSettings(db, overrides);
+  speakNow(text, settings, { interrupt: true });
 }
