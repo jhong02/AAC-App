@@ -156,6 +156,10 @@ function isBlankTile(tile: WordTile): boolean {
   );
 }
 
+function normalizeSearchText(text: string): string {
+  return text.trim().toLowerCase();
+}
+
 function buildVisibleGrid(
   contentTiles: WordTile[],
   cols: number,
@@ -395,6 +399,7 @@ const TalkPage = () => {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [highlightedCategoryIndex, setHighlightedCategoryIndex] = useState(0);
   const [visualMode, setVisualMode] = useState<VisualMode>(getSavedVisualMode);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const categoryMenuRef = useRef<HTMLDivElement | null>(null);
   const categoryTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -515,9 +520,27 @@ const TalkPage = () => {
   }, []);
 
   const filteredBoardTiles = useMemo(() => {
-    if (selectedCategory === "all") return boardTiles;
-    return boardTiles.filter((tile) => tile.category === selectedCategory);
-  }, [boardTiles, selectedCategory]);
+    const categoryFilteredTiles =
+      selectedCategory === "all"
+        ? boardTiles
+        : boardTiles.filter((tile) => tile.category === selectedCategory);
+
+    const cleanedSearch = normalizeSearchText(searchQuery);
+
+    if (!cleanedSearch) {
+      return categoryFilteredTiles;
+    }
+
+    return categoryFilteredTiles.filter((tile) => {
+      if (isBlankTile(tile)) return false;
+
+      const searchableText = normalizeSearchText(
+        `${tile.label} ${tile.value} ${tile.category ?? ""}`
+      );
+
+      return searchableText.includes(cleanedSearch);
+    });
+  }, [boardTiles, selectedCategory, searchQuery]);
 
   const visibleWordCount = useMemo(
     () => filteredBoardTiles.filter((tile) => !isBlankTile(tile)).length,
@@ -532,7 +555,7 @@ const TalkPage = () => {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [selectedCategory]);
+  }, [selectedCategory, searchQuery]);
 
   useEffect(() => {
     setCurrentPage((prev) => Math.min(prev, totalPages - 1));
@@ -648,6 +671,13 @@ const TalkPage = () => {
 
     playSound("categoryBar");
     setVisualMode(mode);
+  };
+
+  const handleClearSearch = () => {
+    if (!searchQuery.trim()) return;
+
+    playSound("categoryBar");
+    setSearchQuery("");
   };
 
   const handleCategoryKeyDown = (
@@ -773,7 +803,6 @@ const TalkPage = () => {
 
         <div className="talk-filter-row">
           <div className="talk-filter" ref={categoryMenuRef}>
-            <span className="talk-filter__label">Category</span>
 
             <div className="talk-filter__dropdown">
               <button
@@ -829,9 +858,37 @@ const TalkPage = () => {
             </div>
           </div>
 
-          <span className="talk-filter__count">
-            {visibleWordCount} word{visibleWordCount === 1 ? "" : "s"}
-          </span>
+          <div className="talk-filter-right">
+            <label className="talk-search">
+
+              <span className="talk-search__box">
+                <span className="talk-search__icon" aria-hidden="true">
+                  ⌕
+                </span>
+
+                <input
+                  className="talk-search__input"
+                  type="text"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search words..."
+                  aria-label="Search words"
+                />
+
+                {searchQuery.trim() ? (
+                  <button
+                    type="button"
+                    className="talk-search__clear"
+                    onClick={handleClearSearch}
+                    aria-label="Clear search"
+                  >
+                    ×
+                  </button>
+                ) : null}
+              </span>
+            </label>
+
+          </div>
         </div>
 
         <div
