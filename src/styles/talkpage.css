@@ -897,6 +897,185 @@
   }
 }
 
+.talk-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.visual-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid rgba(74, 105, 68, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.visual-mode-toggle__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: transparent;
+  color: #3f5038;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.visual-mode-toggle__btn.is-active {
+  background: #ffffff;
+  color: #24301f;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
+}
+
+/* Monochrome mode */
+.talk-page.visual-mono {
+  --app-bg: #d8d8d8;
+  --shell-bg: #cfcfcf;
+  --shell-border: #6c6c6c;
+  --home-blue: #6a6a6a;
+  --favorites-yellow: #747474;
+  --sentence-bg: #f5f5f5;
+  --sentence-border: #3f3f3f;
+  --grid-bg: #a8a8a8;
+  --grid-border: #3f3f3f;
+  --tile-bg: #eeeeee;
+  --tile-hover: #f8f8f8;
+  --tile-active: #dcdcdc;
+  --tile-border: #555555;
+}
+
+.talk-page.visual-mono .talk-tile__icon-img,
+.talk-page.visual-mono .talk-top-badge__icon-img {
+  filter: grayscale(1) contrast(1.12);
+}
+
+.talk-page.visual-mono .visual-mode-toggle {
+  background: #eeeeee;
+  border-color: #777777;
+}
+
+.talk-page.visual-mono .visual-mode-toggle__btn {
+  color: #333333;
+}
+
+.talk-page.visual-mono .visual-mode-toggle__btn.is-active {
+  background: #ffffff;
+  color: #111111;
+}
+
+.talk-page.visual-mono .talk-filter__trigger {
+  background: #f2f2f2;
+  border-color: #555555;
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-filter__menu {
+  background: #f7f7f7;
+  border-color: #555555;
+}
+
+.talk-page.visual-mono .talk-filter__menu-button {
+  background: #f2f2f2;
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-filter__menu-button.is-highlighted,
+.talk-page.visual-mono .talk-filter__menu-button:hover {
+  background: #dedede;
+}
+
+/* Color blind mode */
+.talk-page.visual-colorblind {
+  --app-bg: #cfe8dc;
+  --shell-bg: #b9dcc9;
+  --shell-border: #557a68;
+  --home-blue: #0072b2;
+  --favorites-yellow: #e69f00;
+  --sentence-bg: #f9f9f9;
+  --sentence-border: #4f4f4f;
+  --grid-bg: #c2c2c2;
+  --grid-border: #5f6368;
+  --tile-bg: #f7f7f7;
+  --tile-hover: #ffffff;
+  --tile-active: #e6f2ff;
+  --tile-border: #5f6368;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--all {
+  background: #f5fff0;
+  border-color: #0072b2;
+  color: #2f3f38;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--basic,
+.talk-page.visual-colorblind .talk-filter__menu-button--basic {
+  background: #ffe8a3;
+  border-color: #a86f00;
+  color: #614000;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--pronoun,
+.talk-page.visual-colorblind .talk-filter__menu-button--pronoun {
+  background: #c7e5ff;
+  border-color: #006fb8;
+  color: #00416d;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--verb,
+.talk-page.visual-colorblind .talk-filter__menu-button--verb {
+  background: #cfefea;
+  border-color: #00796b;
+  color: #004d44;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--descriptor,
+.talk-page.visual-colorblind .talk-filter__menu-button--descriptor {
+  background: #e5d4ff;
+  border-color: #6a4fa3;
+  color: #39276d;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--custom,
+.talk-page.visual-colorblind .talk-filter__menu-button--custom {
+  background: #ffd5b8;
+  border-color: #b85c00;
+  color: #663300;
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  .talk-top-left {
+    gap: 5px;
+  }
+
+  .visual-mode-toggle {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .visual-mode-toggle__btn {
+    padding: 4px 6px;
+    font-size: 0.58rem;
+  }
+}
+
+@media (orientation: landscape) and (min-width: 900px) and (max-height: 1100px) {
+  .visual-mode-toggle {
+    padding: 3px;
+  }
+
+  .visual-mode-toggle__btn {
+    padding: 5px 9px;
+    font-size: 0.76rem;
+  }
+}
+
 /* =========================================================
    iPhone / small phone landscape showcase view
    Compact, but still readable

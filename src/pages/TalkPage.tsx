@@ -35,6 +35,7 @@ import uiUndoButtonSound from "../assets/sounds/ui_undo_button.wav";
 import uiClearButtonSound from "../assets/sounds/ui_clear_button.wav";
 
 type TalkAction = "undo" | "clear" | "fill" | "speak";
+type VisualMode = "default" | "mono" | "colorblind";
 
 type TalkControl = {
   id: string;
@@ -74,6 +75,14 @@ type SoundKey =
   | "undo"
   | "clear";
 
+const VISUAL_MODE_STORAGE_KEY = "aac-talk-visual-mode";
+
+const VISUAL_MODE_OPTIONS: { id: VisualMode; label: string }[] = [
+  { id: "default", label: "Color" },
+  { id: "mono", label: "Mono" },
+  { id: "colorblind", label: "Color Blind" },
+];
+
 const TALK_CONTROLS: TalkControl[] = [
   {
     id: "undo",
@@ -108,6 +117,18 @@ const TALK_CONTROLS: TalkControl[] = [
     labelColor: "#6FCF26",
   },
 ];
+
+function getSavedVisualMode(): VisualMode {
+  if (typeof window === "undefined") return "default";
+
+  const saved = window.localStorage.getItem(VISUAL_MODE_STORAGE_KEY);
+
+  if (saved === "mono" || saved === "colorblind") {
+    return saved;
+  }
+
+  return "default";
+}
 
 function makeNavTile(
   action: "previous" | "next",
@@ -180,7 +201,90 @@ function formatCategoryLabel(category: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
-function getCategoryTheme(category?: string): CSSProperties {
+function getCategoryTheme(
+  category?: string,
+  visualMode: VisualMode = "default"
+): CSSProperties {
+  if (visualMode === "mono") {
+    switch (category) {
+      case "basic":
+        return {
+          "--tile-category-bg": "#f4f4f4",
+          "--tile-category-border": "#4a4a4a",
+        } as CSSProperties;
+
+      case "pronoun":
+        return {
+          "--tile-category-bg": "#e8e8e8",
+          "--tile-category-border": "#3f3f3f",
+        } as CSSProperties;
+
+      case "verb":
+        return {
+          "--tile-category-bg": "#dddddd",
+          "--tile-category-border": "#333333",
+        } as CSSProperties;
+
+      case "descriptor":
+        return {
+          "--tile-category-bg": "#d4d4d4",
+          "--tile-category-border": "#2e2e2e",
+        } as CSSProperties;
+
+      case "custom":
+        return {
+          "--tile-category-bg": "#eeeeee",
+          "--tile-category-border": "#555555",
+        } as CSSProperties;
+
+      default:
+        return {
+          "--tile-category-bg": "#f7f7f7",
+          "--tile-category-border": "#555555",
+        } as CSSProperties;
+    }
+  }
+
+  if (visualMode === "colorblind") {
+    switch (category) {
+      case "basic":
+        return {
+          "--tile-category-bg": "#FFE8A3",
+          "--tile-category-border": "#A86F00",
+        } as CSSProperties;
+
+      case "pronoun":
+        return {
+          "--tile-category-bg": "#C7E5FF",
+          "--tile-category-border": "#006FB8",
+        } as CSSProperties;
+
+      case "verb":
+        return {
+          "--tile-category-bg": "#CFEFEA",
+          "--tile-category-border": "#00796B",
+        } as CSSProperties;
+
+      case "descriptor":
+        return {
+          "--tile-category-bg": "#E5D4FF",
+          "--tile-category-border": "#6A4FA3",
+        } as CSSProperties;
+
+      case "custom":
+        return {
+          "--tile-category-bg": "#FFD5B8",
+          "--tile-category-border": "#B85C00",
+        } as CSSProperties;
+
+      default:
+        return {
+          "--tile-category-bg": "#F7F7F7",
+          "--tile-category-border": "#5F6368",
+        } as CSSProperties;
+    }
+  }
+
   switch (category) {
     case "basic":
       return {
@@ -217,6 +321,57 @@ function getCategoryTheme(category?: string): CSSProperties {
   }
 }
 
+function getControlTheme(
+  control: TalkControl,
+  visualMode: VisualMode
+): CSSProperties {
+  if (visualMode === "mono") {
+    return {
+      "--accent": "#707070",
+      "--label-color": "#333333",
+    } as CSSProperties;
+  }
+
+  if (visualMode === "colorblind") {
+    switch (control.action) {
+      case "undo":
+        return {
+          "--accent": "#E69F00",
+          "--label-color": "#B36B00",
+        } as CSSProperties;
+
+      case "clear":
+        return {
+          "--accent": "#D55E00",
+          "--label-color": "#B34700",
+        } as CSSProperties;
+
+      case "fill":
+        return {
+          "--accent": "#0072B2",
+          "--label-color": "#005F99",
+        } as CSSProperties;
+
+      case "speak":
+        return {
+          "--accent": "#009E73",
+          "--label-color": "#007A58",
+        } as CSSProperties;
+
+      default:
+        return {
+          "--accent": control.accent,
+          "--label-color": control.labelColor,
+        } as CSSProperties;
+    }
+  }
+
+  return {
+    "--accent": control.accent,
+    "--label-color": control.labelColor,
+  } as CSSProperties;
+}
+
 function createUiAudio(src: string) {
   const audio = new Audio(src);
   audio.preload = "auto";
@@ -239,12 +394,18 @@ const TalkPage = () => {
   const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
   const [highlightedCategoryIndex, setHighlightedCategoryIndex] = useState(0);
+  const [visualMode, setVisualMode] = useState<VisualMode>(getSavedVisualMode);
 
   const categoryMenuRef = useRef<HTMLDivElement | null>(null);
   const categoryTriggerRef = useRef<HTMLButtonElement | null>(null);
   const soundBankRef = useRef<Record<SoundKey, HTMLAudioElement> | null>(null);
 
   const displayedSentence = sentenceWords.join(" ");
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(VISUAL_MODE_STORAGE_KEY, visualMode);
+  }, [visualMode]);
 
   useEffect(() => {
     soundBankRef.current = {
@@ -482,6 +643,13 @@ const TalkPage = () => {
     categoryTriggerRef.current?.focus();
   };
 
+  const handleVisualModeChange = (mode: VisualMode) => {
+    if (visualMode === mode) return;
+
+    playSound("categoryBar");
+    setVisualMode(mode);
+  };
+
   const handleCategoryKeyDown = (
     event: ReactKeyboardEvent<HTMLButtonElement>
   ) => {
@@ -551,19 +719,37 @@ const TalkPage = () => {
       : formatCategoryLabel(selectedCategory);
 
   return (
-    <section className="talk-page">
+    <section className={`talk-page visual-${visualMode}`}>
       <div className="talk-board-shell">
         <div className="talk-top-bar">
-          <button
-            type="button"
-            className="talk-top-badge talk-top-badge--favorites"
-            aria-label="Favorites"
-          >
-            <span className="talk-top-badge__icon" aria-hidden="true">
-              ★
-            </span>
-            <span className="talk-top-badge__text">Favorites</span>
-          </button>
+          <div className="talk-top-left">
+            <button
+              type="button"
+              className="talk-top-badge talk-top-badge--favorites"
+              aria-label="Favorites"
+            >
+              <span className="talk-top-badge__icon" aria-hidden="true">
+                ★
+              </span>
+              <span className="talk-top-badge__text">Favorites</span>
+            </button>
+
+            <div className="visual-mode-toggle" aria-label="Visual mode">
+              {VISUAL_MODE_OPTIONS.map((mode) => (
+                <button
+                  key={mode.id}
+                  type="button"
+                  className={`visual-mode-toggle__btn ${
+                    visualMode === mode.id ? "is-active" : ""
+                  }`}
+                  aria-pressed={visualMode === mode.id}
+                  onClick={() => handleVisualModeChange(mode.id)}
+                >
+                  {mode.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <button
             type="button"
@@ -626,7 +812,9 @@ const TalkPage = () => {
                     onClick={() => handleCategorySelect(option.value)}
                     onMouseEnter={() => setHighlightedCategoryIndex(index)}
                   >
-                    <span className="talk-filter__menu-text">{option.label}</span>
+                    <span className="talk-filter__menu-text">
+                      {option.label}
+                    </span>
                     <span
                       className={`talk-filter__menu-check ${
                         selectedCategory === option.value ? "is-visible" : ""
@@ -704,7 +892,7 @@ const TalkPage = () => {
                 className={`talk-tile is-word is-category-${
                   tile.category ?? "default"
                 } ${lastPressedId === tile.id ? "is-pressed" : ""}`}
-                style={getCategoryTheme(tile.category)}
+                style={getCategoryTheme(tile.category, visualMode)}
                 onClick={() => handleWordTap(tile)}
                 aria-label={tile.label}
               >
@@ -724,10 +912,7 @@ const TalkPage = () => {
 
         <div className="talk-controls">
           {TALK_CONTROLS.map((control) => {
-            const style = {
-              "--accent": control.accent,
-              "--label-color": control.labelColor,
-            } as CSSProperties;
+            const style = getControlTheme(control, visualMode);
 
             return (
               <button
