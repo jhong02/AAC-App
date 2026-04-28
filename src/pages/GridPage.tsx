@@ -9,6 +9,10 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GridPage.css";
+import "../components/PinOverlay.css";
+import { hasPin, checkPin, setPin, completePinSetup } from "../hooks/usePIN";
+import PinOverlay from "../components/PinOverlay";
+import { useDatabase } from "../hooks/useDatabase";
 import {
   useBoardConfig,
   GRID_LAYOUTS,
@@ -337,6 +341,11 @@ function getTileCategoryClass(category?: string): string {
 
 export default function GridPage() {
   const navigate = useNavigate();
+  const { db } = useDatabase();
+  const [pinStep,    setPinStep]    = useState<"idle" | "verify" | "create" | "confirm">("idle");
+  const [newPin,     setNewPin]     = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinError,   setPinError]   = useState("");
   const {
     boardTiles,
     setBoardTiles,
@@ -1237,6 +1246,44 @@ export default function GridPage() {
       ? "is-custom-board-mode"
       : "";
 
+  const handleChangePinBtn = () => {
+    if (!db) return;
+    if (hasPin(db)) {
+      setPinStep("verify");
+    } else {
+      setPinStep("create");
+    }
+    setNewPin("");
+    setConfirmPin("");
+    setPinError("");
+  };
+
+  const handlePinDigitCreate = (digit: string) => {
+    if (newPin.length >= 4) return;
+    const next = newPin + digit;
+    setNewPin(next);
+    if (next.length === 4) setPinStep("confirm");
+  };
+
+  const handlePinDigitConfirm = (digit: string) => {
+    if (!db) return;
+    if (confirmPin.length >= 4) return;
+    const next = confirmPin + digit;
+    setConfirmPin(next);
+    if (next.length === 4) {
+      if (next === newPin) {
+        setPin(db, next);
+        completePinSetup(db);
+        setPinStep("idle");
+      } else {
+        setPinError("PINs don't match. Try again.");
+        setNewPin("");
+        setConfirmPin("");
+        setPinStep("create");
+      }
+    }
+  };
+
   return (
     <section className="grid-settings-page" onClickCapture={handlePageButtonClickCapture}>
       <div className="grid-settings-shell">
@@ -1309,11 +1356,21 @@ export default function GridPage() {
 
           <button
             type="button"
+            className="grid-settings-home-badge"
+            onClick={handleChangePinBtn}
+          >
+            🔒︎ Change PIN
+          </button>
+
+          <button
+            type="button"
             className="grid-settings-top-action is-back"
             onClick={() => navigate("/user-config")}
           >
             ← Back to Config
           </button>
+
+          
 
           <button
             type="button"
@@ -1983,6 +2040,52 @@ export default function GridPage() {
                 {dialog.confirmLabel || "OK"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {pinStep === "verify" && db && (
+        <PinOverlay
+          title="Enter Current PIN"
+          onCheck={(input) => checkPin(db, input)}
+          onSuccess={() => { setPinStep("create"); setNewPin(""); }}
+          onCancel={() => setPinStep("idle")}
+        />
+      )}
+
+      {(pinStep === "create" || pinStep === "confirm") && (
+        <div className="pin-backdrop">
+          <div className="pin-modal">
+            <h2 className="pin-title">
+              {pinStep === "create" ? "Enter New PIN" : "Confirm New PIN"}
+            </h2>
+            {pinError && <p style={{ color: "#cb5f4d", fontSize: 13, margin: 0 }}>{pinError}</p>}
+            <div className="pin-dots">
+              {[0,1,2,3].map((i) => (
+                <span key={i} className={`pin-dot ${(pinStep === "create" ? newPin : confirmPin).length > i ? "filled" : ""}`} />
+              ))}
+            </div>
+            <div className="pin-grid">
+              {["1","2","3","4","5","6","7","8","9","","0","⌫"].map((key, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  className={`pin-btn ${key === "" ? "pin-btn--empty" : ""}`}
+                  onClick={() => {
+                    if (key === "⌫") {
+                      if (pinStep === "create") setNewPin(p => p.slice(0,-1));
+                      else setConfirmPin(p => p.slice(0,-1));
+                    } else if (key) {
+                      if (pinStep === "create") handlePinDigitCreate(key);
+                      else handlePinDigitConfirm(key);
+                    }
+                  }}
+                >
+                  {key}
+                </button>
+              ))}
+            </div>
+            <button type="button" className="pin-cancel" onClick={() => setPinStep("idle")}>Cancel</button>
           </div>
         </div>
       )}

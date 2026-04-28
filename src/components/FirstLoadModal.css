@@ -1,0 +1,154 @@
+/* FirstLoadModal.css — matches app design language */
+
+.flm-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: "Fredoka", system-ui, sans-serif;
+}
+
+.flm-modal {
+  background: #a9df93;
+  border: 3px solid white;
+  border-radius: 24px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+  padding: 36px 28px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.flm-modal h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #43543b;
+  margin: 0;
+  text-shadow:
+    1px  1px 0 white,
+   -1px  1px 0 white,
+    1px -1px 0 white,
+   -1px -1px 0 white;
+}
+
+.flm-subtitle {
+  font-size: 15px;
+  color: #5d6f55;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.flm-error {
+  font-size: 13px;
+  color: #cb5f4d;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Dots */
+.flm-dots {
+  display: flex;
+  gap: 14px;
+}
+
+.flm-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid white;
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.15s;
+}
+
+.flm-dot.filled {
+  background: #6ee0ac;
+  border-color: white;
+}
+
+/* Number pad */
+.flm-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.flm-btn {
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 4px solid white;
+  background: #6ee0ac;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  font-size: 24px;
+  font-weight: 700;
+  font-family: "Fredoka", system-ui, sans-serif;
+  color: white;
+  cursor: pointer;
+  transition: background 0.1s, transform 0.06s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.flm-btn:hover { background: #45b581; transform: translateY(-1px); }
+.flm-btn:active { transform: scale(0.95); }
+
+.flm-btn--empty {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Action buttons */
+.flm-btn-primary {
+  width: 100%;
+  background: #6ee0ac;
+  border: 7px solid white;
+  border-radius: 60px;
+  box-shadow: 0px 8px 20px rgba(0,0,0,0.3);
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: "Fredoka", system-ui, sans-serif;
+  padding: 14px 20px;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.06s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.flm-btn-primary:hover { background: #45b581; transform: translateY(-1px); }
+.flm-btn-primary:active { transform: translateY(1px); }
+
+.flm-btn-secondary {
+  background: none;
+  border: none;
+  color: #5d6f55;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "Fredoka", system-ui, sans-serif;
+  cursor: pointer;
+  padding: 4px;
+  text-decoration: underline;
+}
+.flm-btn-secondary:hover { color: #43543b; }
+
+/* Success */
+.flm-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: #6ee0ac;
+  border: 4px solid white;
+  box-shadow: 0px 6px 16px rgba(0,0,0,0.2);
+  color: white;
+  font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
