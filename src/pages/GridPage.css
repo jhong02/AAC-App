@@ -916,6 +916,41 @@
   font-weight: 600;
 }
 
+.grid-custom-image-tools {
+  display: grid;
+  gap: 10px;
+}
+
+.grid-irasutoya-search-btn {
+  width: 100%;
+  min-height: 46px;
+  border: 3px solid #fff3b0;
+  border-radius: 999px;
+  background: #f4c84a;
+  color: #6b5700;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 10px rgba(116, 99, 0, 0.16);
+}
+
+.grid-irasutoya-search-btn:hover {
+  background: #ffe47a;
+}
+
+.grid-irasutoya-tip {
+  margin: 0;
+  padding: 10px 12px;
+  border: 2px solid #d8ead0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.68);
+  color: #5d6f55;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .grid-custom-modal__actions {
   display: flex;
   justify-content: flex-end;

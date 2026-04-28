@@ -675,6 +675,15 @@ export default function GridPage() {
     reader.readAsDataURL(file);
   };
 
+  const openIrasutoyaSearch = () => {
+    const searchQuery = customDraft.label.trim();
+    const searchUrl = searchQuery
+      ? `https://www.irasutoya.com/search?q=${encodeURIComponent(searchQuery)}`
+      : "https://www.irasutoya.com/search";
+
+    window.open(searchUrl, "_blank", "noopener,noreferrer");
+  };
+
   const handleCustomDone = () => {
     playSound("addCustomWord");
     setPendingCustomTile(buildCustomTile(customDraft));
@@ -1733,11 +1742,26 @@ export default function GridPage() {
 
             <label className="grid-custom-modal__field">
               <span>Image</span>
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleCustomImageChange}
-              />
+              <div className="grid-custom-image-tools">
+                <button
+                  type="button"
+                  className="grid-irasutoya-search-btn"
+                  onClick={openIrasutoyaSearch}
+                >
+                  Search Irasutoya Website
+                </button>
+
+                <p className="grid-irasutoya-tip">
+                  Need a tile image?
+                  This is the website we used to find many of the images in our app. You can search for a similar image there, download one you like, then upload it here for your custom tile.
+                </p>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleCustomImageChange}
+                />
+              </div>
               <small>{customDraft.fileName || "No file selected yet"}</small>
             </label>
 
