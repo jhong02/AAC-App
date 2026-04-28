@@ -23,6 +23,9 @@ import {
 } from "../context/BoardConfigContext";
 import { useSessionLogger } from "../hooks/useSessionLogger";
 
+import { usePrediction } from "../hooks/usePrediction";
+
+
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
 import homeIcon from "../assets/images/icons/home.png";
@@ -407,6 +410,17 @@ const TalkPage = () => {
 
   const displayedSentence = sentenceWords.join(" ");
 
+  const {prediction, acceptPrediction, clearPrediction} = usePrediction(
+  db ?? null,
+  sentenceWords,
+  (word) => {
+    setSentenceWords((prev) => {
+      logTap(word, prev.length);
+      return [...prev, word];
+    });
+  }
+);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(VISUAL_MODE_STORAGE_KEY, visualMode);
@@ -627,8 +641,10 @@ const TalkPage = () => {
       case "clear":
         playSound("clear");
         setSentenceWords([]);
+        clearPrediction();
         break;
       case "fill":
+        acceptPrediction();
         break;
       case "speak":
         speakText(displayedSentence);
@@ -799,6 +815,20 @@ const TalkPage = () => {
           aria-label="Sentence bar"
         >
           {displayedSentence || "\u00A0"}
+          {prediction && displayedSentence && (
+            <span
+              style={{
+                color: "rgba(0,0,0,0.25)",
+                fontStyle: "italic",
+                marginLeft: "0.35em",
+                pointerEvents: "none",
+                userSelect: "none",
+              }}
+              aria-hidden="true"
+            >
+              {prediction}
+            </span>
+          )}
         </button>
 
         <div className="talk-filter-row">
