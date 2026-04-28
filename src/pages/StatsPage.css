@@ -135,3 +135,41 @@
   font-size: 12px;
   color: #666;
 }
+
+
+.stats-action-btn {
+  min-height: 56px;
+  border: 3px solid var(--white);
+  border-radius: 999px;
+  color: var(--white);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14);
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+
+.stats-action-btn:hover {
+  filter: brightness(1.02);
+}
+
+.stats-action-btn:active {
+  transform: translateY(2px);
+}
+
+.stats-action-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.stats-action-btn.is-global {
+  background: #ecea6f;
+  color: #765d00;
+}
+
+.stats-action-btn.is-session {
+  background: #eb6b6b;
+  color: white;
+}
