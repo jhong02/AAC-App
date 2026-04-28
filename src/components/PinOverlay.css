@@ -1,0 +1,149 @@
+/* PinOverlay.css — matches app design language */
+
+.pin-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: "Fredoka", system-ui, sans-serif;
+}
+
+.pin-modal {
+  background: #a9df93;
+  border: 3px solid white;
+  border-radius: 24px;
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+  padding: 32px 28px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+
+.pin-title {
+  font-size: 26px;
+  font-weight: 700;
+  color: #43543b;
+  margin: 0;
+  text-shadow:
+    1px  1px 0 white,
+   -1px  1px 0 white,
+    1px -1px 0 white,
+   -1px -1px 0 white;
+}
+
+/* Dots */
+.pin-dots {
+  display: flex;
+  gap: 14px;
+}
+
+.pin-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid white;
+  background: rgba(255,255,255,0.4);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.15s;
+}
+
+.pin-dot.filled {
+  background: #6ee0ac;
+  border-color: white;
+}
+
+.pin-dot.error {
+  background: #ee7d67;
+  border-color: white;
+  animation: pin-shake 0.4s ease;
+}
+
+@keyframes pin-shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-5px); }
+  80%       { transform: translateX(5px); }
+}
+
+/* Status messages */
+.pin-attempts {
+  font-size: 14px;
+  color: #5d6f55;
+  font-weight: 600;
+  margin: 0;
+}
+
+.pin-lockout {
+  font-size: 14px;
+  color: #cb5f4d;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+/* Number pad */
+.pin-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+
+.pin-btn {
+  aspect-ratio: 1;
+  border-radius: 16px;
+  border: 4px solid white;
+  background: #6ee0ac;
+  box-shadow: 0px 4px 10px rgba(0,0,0,0.2);
+  font-size: 24px;
+  font-weight: 700;
+  font-family: "Fredoka", system-ui, sans-serif;
+  color: white;
+  cursor: pointer;
+  transition: background 0.1s, transform 0.06s;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.pin-btn:hover:not(:disabled) {
+  background: #45b581;
+  transform: translateY(-1px);
+}
+
+.pin-btn:active:not(:disabled) {
+  transform: scale(0.95) translateY(1px);
+}
+
+.pin-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pin-btn--empty {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/* Cancel */
+.pin-cancel {
+  background: none;
+  border: none;
+  color: #5d6f55;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: "Fredoka", system-ui, sans-serif;
+  cursor: pointer;
+  padding: 4px 12px;
+  text-decoration: underline;
+}
+
+.pin-cancel:hover {
+  color: #43543b;
+}
