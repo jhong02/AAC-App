@@ -19,12 +19,12 @@ import { getCategories } from "../db/wordRepository";
 import {
   useBoardConfig,
   GRID_LAYOUTS,
+  INITIAL_BOARD_TILES,
+  type GridPreset,
   type WordTile,
 } from "../context/BoardConfigContext";
 import { useSessionLogger } from "../hooks/useSessionLogger";
-
 import { usePrediction } from "../hooks/usePrediction";
-
 
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
@@ -78,7 +78,25 @@ type SoundKey =
   | "undo"
   | "clear";
 
+type SavedBoard = {
+  id: string;
+  name: string;
+  tiles: WordTile[];
+  gridPreset: GridPreset;
+  createdAt: number;
+  updatedAt: number;
+};
+
+type DefaultBoardSnapshot = {
+  tiles: WordTile[];
+  gridPreset: GridPreset;
+  updatedAt: number;
+};
+
 const VISUAL_MODE_STORAGE_KEY = "aac-talk-visual-mode";
+const CUSTOM_BOARDS_STORAGE_KEY = "aac-custom-boards";
+const CUSTOM_BOARDS_EVENT = "aac-custom-boards-updated";
+const DEFAULT_BOARD_STORAGE_KEY = "aac-default-board-v2";
 
 const VISUAL_MODE_OPTIONS: { id: VisualMode; label: string }[] = [
   { id: "default", label: "Color" },
@@ -120,6 +138,40 @@ const TALK_CONTROLS: TalkControl[] = [
     labelColor: "#6FCF26",
   },
 ];
+
+function cloneTiles(tiles: WordTile[]): WordTile[] {
+  return tiles.map((tile) => ({ ...tile }));
+}
+
+function readSavedBoards(): SavedBoard[] {
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_BOARDS_STORAGE_KEY);
+    if (!raw) return [];
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+function readDefaultBoardSnapshot(): DefaultBoardSnapshot | null {
+  try {
+    const raw = window.localStorage.getItem(DEFAULT_BOARD_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as DefaultBoardSnapshot;
+
+    if (!Array.isArray(parsed.tiles)) return null;
+    if (!parsed.gridPreset) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
 
 function getSavedVisualMode(): VisualMode {
   if (typeof window === "undefined") return "default";
@@ -389,7 +441,8 @@ function createUiAudio(src: string) {
 const TalkPage = () => {
   const navigate = useNavigate();
 
-  const { boardTiles, gridPreset } = useBoardConfig();
+  const { boardTiles, setBoardTiles, gridPreset, setGridPreset } =
+    useBoardConfig();
   const { logTap } = useSessionLogger();
   const { db } = useDatabase();
   const layout = GRID_LAYOUTS[gridPreset];
@@ -404,27 +457,48 @@ const TalkPage = () => {
   const [visualMode, setVisualMode] = useState<VisualMode>(getSavedVisualMode);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [savedBoards, setSavedBoards] = useState<SavedBoard[]>([]);
+  const [isCustomBoardsOpen, setIsCustomBoardsOpen] = useState(false);
+  const [activeBoardKind, setActiveBoardKind] = useState<"default" | "custom">(
+    "default"
+  );
+
   const categoryMenuRef = useRef<HTMLDivElement | null>(null);
   const categoryTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const customBoardsRef = useRef<HTMLDivElement | null>(null);
   const soundBankRef = useRef<Record<SoundKey, HTMLAudioElement> | null>(null);
 
   const displayedSentence = sentenceWords.join(" ");
 
-  const {prediction, acceptPrediction, clearPrediction} = usePrediction(
-  db ?? null,
-  sentenceWords,
-  (word) => {
-    setSentenceWords((prev) => {
-      logTap(word, prev.length);
-      return [...prev, word];
-    });
-  }
-);
+  const { prediction, acceptPrediction, clearPrediction } = usePrediction(
+    db ?? null,
+    sentenceWords,
+    (word) => {
+      setSentenceWords((prev) => {
+        logTap(word, prev.length);
+        return [...prev, word];
+      });
+    }
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     window.localStorage.setItem(VISUAL_MODE_STORAGE_KEY, visualMode);
   }, [visualMode]);
+
+  useEffect(() => {
+    const syncBoards = () => setSavedBoards(readSavedBoards());
+
+    syncBoards();
+
+    window.addEventListener("storage", syncBoards);
+    window.addEventListener(CUSTOM_BOARDS_EVENT, syncBoards);
+
+    return () => {
+      window.removeEventListener("storage", syncBoards);
+      window.removeEventListener(CUSTOM_BOARDS_EVENT, syncBoards);
+    };
+  }, []);
 
   useEffect(() => {
     soundBankRef.current = {
@@ -454,6 +528,29 @@ const TalkPage = () => {
       syncRuntimeTTSSettingsFromDB(db);
     }
   }, [db]);
+
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (
+        categoryMenuRef.current &&
+        !categoryMenuRef.current.contains(target)
+      ) {
+        setIsCategoryMenuOpen(false);
+      }
+
+      if (
+        customBoardsRef.current &&
+        !customBoardsRef.current.contains(target)
+      ) {
+        setIsCustomBoardsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
 
   const playSound = (key: SoundKey) => {
     const audio = soundBankRef.current?.[key];
@@ -519,20 +616,6 @@ const TalkPage = () => {
     setHighlightedCategoryIndex(selectedIndex >= 0 ? selectedIndex : 0);
   }, [isCategoryMenuOpen, menuOptions, selectedCategory]);
 
-  useEffect(() => {
-    const handleOutsideClick = (event: MouseEvent) => {
-      if (
-        categoryMenuRef.current &&
-        !categoryMenuRef.current.contains(event.target as Node)
-      ) {
-        setIsCategoryMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, []);
-
   const filteredBoardTiles = useMemo(() => {
     const categoryFilteredTiles =
       selectedCategory === "all"
@@ -556,11 +639,6 @@ const TalkPage = () => {
     });
   }, [boardTiles, selectedCategory, searchQuery]);
 
-  const visibleWordCount = useMemo(
-    () => filteredBoardTiles.filter((tile) => !isBlankTile(tile)).length,
-    [filteredBoardTiles]
-  );
-
   const contentSlotsPerPage = layout.cols * layout.rows - 2;
   const totalPages = Math.max(
     1,
@@ -569,7 +647,7 @@ const TalkPage = () => {
 
   useEffect(() => {
     setCurrentPage(0);
-  }, [selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery, gridPreset]);
 
   useEffect(() => {
     setCurrentPage((prev) => Math.min(prev, totalPages - 1));
@@ -605,6 +683,38 @@ const TalkPage = () => {
     }, 180);
   };
 
+  const handleLoadCustomBoard = (board: SavedBoard) => {
+    playSound("categoryBar");
+
+    setActiveBoardKind("custom");
+    setBoardTiles(cloneTiles(board.tiles));
+    setGridPreset(board.gridPreset);
+    setSelectedCategory("all");
+    setSearchQuery("");
+    setCurrentPage(0);
+    setIsCustomBoardsOpen(false);
+  };
+
+  const handleLoadDefaultBoard = () => {
+    playSound("categoryBar");
+
+    const savedDefaultBoard = readDefaultBoardSnapshot();
+
+    if (savedDefaultBoard) {
+      setBoardTiles(cloneTiles(savedDefaultBoard.tiles));
+      setGridPreset(savedDefaultBoard.gridPreset);
+    } else {
+      setBoardTiles(cloneTiles(INITIAL_BOARD_TILES));
+      setGridPreset("default");
+    }
+
+    setActiveBoardKind("default");
+    setSelectedCategory("all");
+    setSearchQuery("");
+    setCurrentPage(0);
+    setIsCustomBoardsOpen(false);
+  };
+
   const handleWordTap = (tile: WordTile) => {
     if (isBlankTile(tile)) return;
 
@@ -638,17 +748,21 @@ const TalkPage = () => {
         playSound("undo");
         setSentenceWords((prev) => prev.slice(0, -1));
         break;
+
       case "clear":
         playSound("clear");
         setSentenceWords([]);
         clearPrediction();
         break;
+
       case "fill":
         acceptPrediction();
         break;
+
       case "speak":
         speakText(displayedSentence);
         break;
+
       default:
         break;
     }
@@ -672,6 +786,7 @@ const TalkPage = () => {
       closeCategoryMenu();
       return;
     }
+
     openCategoryMenu();
   };
 
@@ -703,20 +818,24 @@ const TalkPage = () => {
 
     if (event.key === "ArrowDown") {
       event.preventDefault();
+
       if (!isCategoryMenuOpen) {
         openCategoryMenu();
         return;
       }
+
       setHighlightedCategoryIndex((prev) => (prev + 1) % menuOptions.length);
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
+
       if (!isCategoryMenuOpen) {
         openCategoryMenu();
         return;
       }
+
       setHighlightedCategoryIndex(
         (prev) => (prev - 1 + menuOptions.length) % menuOptions.length
       );
@@ -749,6 +868,7 @@ const TalkPage = () => {
       if (option) {
         handleCategorySelect(option.value);
       }
+
       return;
     }
 
@@ -769,16 +889,74 @@ const TalkPage = () => {
       <div className="talk-board-shell">
         <div className="talk-top-bar">
           <div className="talk-top-left">
-            <button
-              type="button"
-              className="talk-top-badge talk-top-badge--favorites"
-              aria-label="Favorites"
-            >
-              <span className="talk-top-badge__icon" aria-hidden="true">
-                ★
-              </span>
-              <span className="talk-top-badge__text">Favorites</span>
-            </button>
+            <div className="talk-custom-boards" ref={customBoardsRef}>
+              <button
+                type="button"
+                className="talk-top-badge talk-top-badge--custom-boards"
+                aria-label="Boards"
+                aria-expanded={isCustomBoardsOpen}
+                onClick={() => {
+                  playSound("categoryBar");
+                  setIsCustomBoardsOpen((prev) => !prev);
+                }}
+              >
+                <span className="talk-top-badge__icon" aria-hidden="true">
+                  ★
+                </span>
+                <span className="talk-top-badge__text">Boards</span>
+                <span
+                  className={`talk-custom-boards__chevron ${
+                    isCustomBoardsOpen ? "is-open" : ""
+                  }`}
+                  aria-hidden="true"
+                >
+                  ▾
+                </span>
+              </button>
+
+              <div
+                className={`talk-custom-boards__menu ${
+                  isCustomBoardsOpen ? "is-open" : ""
+                }`}
+              >
+                <div className="talk-custom-boards__title">Boards</div>
+
+                {savedBoards.length === 0 ? (
+                  <div className="talk-custom-boards__empty">
+                    No custom boards saved yet.
+                  </div>
+                ) : (
+                  savedBoards.map((board) => (
+                    <button
+                      key={board.id}
+                      type="button"
+                      className="talk-custom-boards__item"
+                      onClick={() => handleLoadCustomBoard(board)}
+                    >
+                      <span>{board.name}</span>
+                      <span className="talk-custom-boards__item-meta">
+                        {GRID_LAYOUTS[board.gridPreset]?.label ?? "Board"}
+                      </span>
+                    </button>
+                  ))
+                )}
+
+                <div className="talk-custom-boards__divider" />
+
+                <button
+                  type="button"
+                  className={`talk-custom-boards__item talk-custom-boards__item--default ${
+                    activeBoardKind === "default" ? "is-active" : ""
+                  }`}
+                  onClick={handleLoadDefaultBoard}
+                >
+                  <span>Default Board</span>
+                  <span className="talk-custom-boards__item-meta">
+                    Includes your latest default board changes
+                  </span>
+                </button>
+              </div>
+            </div>
 
             <div className="visual-mode-toggle" aria-label="Visual mode">
               {VISUAL_MODE_OPTIONS.map((mode) => (
@@ -816,16 +994,7 @@ const TalkPage = () => {
         >
           {displayedSentence || "\u00A0"}
           {prediction && displayedSentence && (
-            <span
-              style={{
-                color: "rgba(0,0,0,0.25)",
-                fontStyle: "italic",
-                marginLeft: "0.35em",
-                pointerEvents: "none",
-                userSelect: "none",
-              }}
-              aria-hidden="true"
-            >
+            <span className="talk-prediction-preview" aria-hidden="true">
               {prediction}
             </span>
           )}
@@ -833,7 +1002,6 @@ const TalkPage = () => {
 
         <div className="talk-filter-row">
           <div className="talk-filter" ref={categoryMenuRef}>
-
             <div className="talk-filter__dropdown">
               <button
                 ref={categoryTriggerRef}
@@ -890,7 +1058,6 @@ const TalkPage = () => {
 
           <div className="talk-filter-right">
             <label className="talk-search">
-
               <span className="talk-search__box">
                 <span className="talk-search__icon" aria-hidden="true">
                   ⌕
@@ -917,7 +1084,6 @@ const TalkPage = () => {
                 ) : null}
               </span>
             </label>
-
           </div>
         </div>
 

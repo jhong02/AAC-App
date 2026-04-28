@@ -44,6 +44,13 @@
   margin-bottom: 14px;
 }
 
+.talk-top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .talk-top-badge {
   display: inline-flex;
   align-items: center;
@@ -56,13 +63,15 @@
   font-weight: 700;
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
   cursor: pointer;
+  font-family: inherit;
 }
 
 .talk-top-badge--home {
   background: var(--home-blue);
 }
 
-.talk-top-badge--favorites {
+.talk-top-badge--favorites,
+.talk-top-badge--custom-boards {
   background: var(--favorites-yellow);
 }
 
@@ -80,6 +89,144 @@
 
 .talk-top-badge__text {
   line-height: 1;
+}
+
+.talk-custom-boards {
+  position: relative;
+}
+
+.talk-custom-boards__chevron {
+  font-size: 0.85rem;
+  line-height: 1;
+  transition: transform 0.16s ease;
+}
+
+.talk-custom-boards__chevron.is-open {
+  transform: rotate(180deg);
+}
+
+.talk-custom-boards__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  z-index: 80;
+  width: 280px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 3px solid #ddb44a;
+  border-radius: 18px;
+  background: #fff8dc;
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+}
+
+.talk-custom-boards__menu.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.talk-custom-boards__title {
+  margin-bottom: 10px;
+  color: #5d4a13;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.talk-custom-boards__empty {
+  color: #66614d;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.talk-custom-boards__item {
+  width: 100%;
+  min-height: 46px;
+  padding: 8px 12px;
+  border: 2px solid #f0db8c;
+  border-radius: 12px;
+  background: #fffdf2;
+  color: #434343;
+  text-align: left;
+  font: inherit;
+  font-size: 0.92rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.talk-custom-boards__item:hover {
+  filter: brightness(0.98);
+}
+
+.talk-custom-boards__item + .talk-custom-boards__item {
+  margin-top: 8px;
+}
+
+.talk-custom-boards__item-meta {
+  color: #746300;
+  font-size: 0.72rem;
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+.talk-custom-boards__divider {
+  height: 2px;
+  margin: 10px 0;
+  border-radius: 999px;
+  background: rgba(116, 99, 0, 0.22);
+}
+
+.talk-custom-boards__item--default {
+  background: #f5fff0;
+  border-color: #7cae71;
+}
+
+.talk-custom-boards__item--default.is-active {
+  border-color: #49a8f0;
+  box-shadow:
+    0 0 0 3px rgba(73, 168, 240, 0.2),
+    inset 5px 0 0 #49a8f0;
+}
+
+.visual-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid rgba(74, 105, 68, 0.35);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.visual-mode-toggle__btn {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: transparent;
+  color: #3f5038;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.visual-mode-toggle__btn.is-active {
+  background: #ffffff;
+  color: #24301f;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
 }
 
 .talk-sentence-bar {
@@ -114,6 +261,14 @@
 
 .talk-sentence-bar.is-empty {
   color: transparent;
+}
+
+.talk-prediction-preview {
+  color: rgba(0, 0, 0, 0.25);
+  font-style: italic;
+  margin-left: 0.35em;
+  pointer-events: none;
+  user-select: none;
 }
 
 .talk-filter-row {
@@ -191,7 +346,7 @@
   top: calc(100% - 4px);
   left: 0;
   right: 0;
-  z-index: 30;
+  z-index: 70;
   overflow: hidden;
   border: 3px solid #2d7fdb;
   border-top: none;
@@ -292,11 +447,97 @@
   color: #8a6800;
 }
 
-.talk-filter__count {
-  color: #4e5b47;
-  font-size: 0.95rem;
+.talk-filter-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: 14px;
+  margin-left: auto;
+}
+
+.talk-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.talk-search__box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 300px;
+}
+
+.talk-search__input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 46px 0 44px;
+  border: 3px solid #2d7fdb;
+  border-radius: 28px;
+  background: #f5fff0;
+  color: #44513f;
+  font: inherit;
+  font-size: 1rem;
   font-weight: 700;
-  padding-bottom: 8px;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.talk-search__input::placeholder {
+  color: rgba(68, 81, 63, 0.68);
+}
+
+.talk-search__input:focus {
+  border-color: #1f73c9;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), 0 0 0 4px rgba(73, 168, 240, 0.2);
+}
+
+.talk-search__icon {
+  position: absolute;
+  left: 17px;
+  z-index: 1;
+  color: #44513f;
+  font-size: 1.2rem;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.talk-search__clear {
+  position: absolute;
+  right: 10px;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  background: #ef5350;
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  transition:
+    transform 0.12s ease,
+    filter 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.talk-search__clear:hover {
+  background: #e53935;
+  transform: scale(1.04);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+}
+
+.talk-search__clear:active {
+  transform: scale(0.94);
+  background: #d32f2f;
 }
 
 .talk-grid {
@@ -351,6 +592,7 @@
   border: 1.5px solid var(--tile-border);
   cursor: pointer;
   transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+  font-family: inherit;
 }
 
 .talk-tile:hover {
@@ -468,6 +710,7 @@
   background: transparent;
   cursor: pointer;
   transition: transform 0.14s ease, filter 0.14s ease;
+  font-family: inherit;
 }
 
 .talk-control-btn::before,
@@ -579,6 +822,157 @@
   background: #4e5b47;
 }
 
+.talk-page.visual-mono {
+  --app-bg: #d8d8d8;
+  --shell-bg: #cfcfcf;
+  --shell-border: #6c6c6c;
+  --home-blue: #6a6a6a;
+  --favorites-yellow: #747474;
+  --sentence-bg: #f5f5f5;
+  --sentence-border: #3f3f3f;
+  --grid-bg: #a8a8a8;
+  --grid-border: #3f3f3f;
+  --tile-bg: #eeeeee;
+  --tile-hover: #f8f8f8;
+  --tile-active: #dcdcdc;
+  --tile-border: #555555;
+}
+
+.talk-page.visual-mono .talk-tile__icon-img,
+.talk-page.visual-mono .talk-top-badge__icon-img {
+  filter: grayscale(1) contrast(1.12);
+}
+
+.talk-page.visual-mono .visual-mode-toggle {
+  background: #eeeeee;
+  border-color: #777777;
+}
+
+.talk-page.visual-mono .visual-mode-toggle__btn {
+  color: #333333;
+}
+
+.talk-page.visual-mono .visual-mode-toggle__btn.is-active {
+  background: #ffffff;
+  color: #111111;
+}
+
+.talk-page.visual-mono .talk-filter__trigger {
+  background: #f2f2f2;
+  border-color: #555555;
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-filter__menu {
+  background: #f7f7f7;
+  border-color: #555555;
+}
+
+.talk-page.visual-mono .talk-filter__menu-button {
+  background: #f2f2f2;
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-filter__menu-button.is-highlighted,
+.talk-page.visual-mono .talk-filter__menu-button:hover {
+  background: #dedede;
+}
+
+.talk-page.visual-mono .talk-search__input {
+  background: #f2f2f2;
+  border-color: #555555;
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-search__input::placeholder {
+  color: #666666;
+}
+
+.talk-page.visual-mono .talk-search__icon {
+  color: #222222;
+}
+
+.talk-page.visual-mono .talk-custom-boards__menu {
+  background: #f3f3f3;
+  border-color: #777777;
+}
+
+.talk-page.visual-mono .talk-custom-boards__item {
+  background: #ffffff;
+  border-color: #777777;
+}
+
+.talk-page.visual-mono .talk-custom-boards__divider {
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.talk-page.visual-colorblind {
+  --app-bg: #cfe8dc;
+  --shell-bg: #b9dcc9;
+  --shell-border: #557a68;
+  --home-blue: #0072b2;
+  --favorites-yellow: #e69f00;
+  --sentence-bg: #f9f9f9;
+  --sentence-border: #4f4f4f;
+  --grid-bg: #c2c2c2;
+  --grid-border: #5f6368;
+  --tile-bg: #f7f7f7;
+  --tile-hover: #ffffff;
+  --tile-active: #e6f2ff;
+  --tile-border: #5f6368;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--all {
+  background: #f5fff0;
+  border-color: #0072b2;
+  color: #2f3f38;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--basic,
+.talk-page.visual-colorblind .talk-filter__menu-button--basic {
+  background: #ffe8a3;
+  border-color: #a86f00;
+  color: #614000;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--pronoun,
+.talk-page.visual-colorblind .talk-filter__menu-button--pronoun {
+  background: #c7e5ff;
+  border-color: #006fb8;
+  color: #00416d;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--verb,
+.talk-page.visual-colorblind .talk-filter__menu-button--verb {
+  background: #cfefea;
+  border-color: #00796b;
+  color: #004d44;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--descriptor,
+.talk-page.visual-colorblind .talk-filter__menu-button--descriptor {
+  background: #e5d4ff;
+  border-color: #6a4fa3;
+  color: #39276d;
+}
+
+.talk-page.visual-colorblind .talk-filter__trigger--custom,
+.talk-page.visual-colorblind .talk-filter__menu-button--custom {
+  background: #ffd5b8;
+  border-color: #b85c00;
+  color: #663300;
+}
+
+.talk-page.visual-colorblind .talk-search__input {
+  background: #f5fff0;
+  border-color: #0072b2;
+  color: #2f3f38;
+}
+
+.talk-page.visual-colorblind .talk-search__input:focus {
+  border-color: #005f99;
+}
+
 @media (max-width: 1400px) {
   .talk-control-btn {
     --control-border: 6px;
@@ -610,6 +1004,21 @@
     width: 100%;
     min-width: 0;
   }
+
+  .talk-filter-right {
+    width: 100%;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-left: 0;
+  }
+
+  .talk-search {
+    flex: 1;
+  }
+
+  .talk-search__box {
+    width: 100%;
+  }
 }
 
 @media (max-width: 700px) {
@@ -625,6 +1034,10 @@
   .talk-top-bar {
     flex-wrap: wrap;
     align-items: center;
+  }
+
+  .talk-custom-boards__menu {
+    width: min(280px, calc(100vw - 36px));
   }
 
   .talk-sentence-bar {
@@ -677,6 +1090,17 @@
     --tile-nav-label-size: 0.56rem;
   }
 
+  .talk-filter-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .talk-search__input {
+    min-height: 46px;
+    font-size: 0.9rem;
+  }
+
   .talk-page-indicator {
     margin-top: 12px;
     gap: 6px;
@@ -691,10 +1115,7 @@
     height: 10px;
   }
 }
-/* =========================================================
-   iPad / tablet landscape
-   Better fit across Mini / Air / Pro without shrinking words too much
-   ========================================================= */
+
 @media screen and (orientation: landscape) and (min-width: 768px) and (max-width: 1400px) and (max-height: 1100px) {
   .talk-page {
     height: 100dvh;
@@ -744,6 +1165,15 @@
     height: 16px;
   }
 
+  .visual-mode-toggle {
+    padding: 3px;
+  }
+
+  .visual-mode-toggle__btn {
+    padding: 5px 9px;
+    font-size: 0.76rem;
+  }
+
   .talk-sentence-bar {
     min-height: 0;
     height: 100%;
@@ -761,11 +1191,6 @@
 
   .talk-filter {
     gap: 4px;
-  }
-
-  .talk-filter__label {
-    font-size: 0.92rem;
-    margin-bottom: 2px;
   }
 
   .talk-filter__dropdown {
@@ -790,9 +1215,27 @@
     padding: 0 14px;
   }
 
-  .talk-filter__count {
-    font-size: 0.92rem;
-    padding-bottom: 5px;
+  .talk-search__box {
+    width: 250px;
+  }
+
+  .talk-search__input {
+    min-height: 46px;
+    padding: 0 42px 0 40px;
+    font-size: 0.95rem;
+    border-radius: 20px;
+  }
+
+  .talk-search__icon {
+    left: 15px;
+    font-size: 1.05rem;
+  }
+
+  .talk-search__clear {
+    width: 30px;
+    height: 30px;
+    right: 8px;
+    font-size: 1rem;
   }
 
   .talk-grid {
@@ -803,7 +1246,6 @@
     grid-auto-rows: minmax(0, 1fr);
   }
 
-  /* Default 6x3 */
   .talk-grid.is-default {
     --tile-min-height: 0;
     --tile-padding: 8px 6px;
@@ -815,7 +1257,6 @@
     --tile-nav-label-size: clamp(0.92rem, 1.08vw, 1.04rem);
   }
 
-  /* Medium 10x5 */
   .talk-grid.is-medium {
     --tile-min-height: 0;
     --tile-padding: 5px 4px;
@@ -827,7 +1268,6 @@
     --tile-nav-label-size: clamp(0.8rem, 0.94vw, 0.92rem);
   }
 
-  /* Large 12x8 */
   .talk-grid.is-large {
     --tile-min-height: 0;
     --tile-padding: 3px 2px;
@@ -897,455 +1337,6 @@
   }
 }
 
-.talk-top-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.visual-mode-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  border: 2px solid rgba(74, 105, 68, 0.35);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.62);
-  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.1);
-}
-
-.visual-mode-toggle__btn {
-  border: none;
-  border-radius: 999px;
-  padding: 6px 10px;
-  background: transparent;
-  color: #3f5038;
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 800;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.visual-mode-toggle__btn.is-active {
-  background: #ffffff;
-  color: #24301f;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.18);
-}
-
-/* Monochrome mode */
-.talk-page.visual-mono {
-  --app-bg: #d8d8d8;
-  --shell-bg: #cfcfcf;
-  --shell-border: #6c6c6c;
-  --home-blue: #6a6a6a;
-  --favorites-yellow: #747474;
-  --sentence-bg: #f5f5f5;
-  --sentence-border: #3f3f3f;
-  --grid-bg: #a8a8a8;
-  --grid-border: #3f3f3f;
-  --tile-bg: #eeeeee;
-  --tile-hover: #f8f8f8;
-  --tile-active: #dcdcdc;
-  --tile-border: #555555;
-}
-
-.talk-page.visual-mono .talk-tile__icon-img,
-.talk-page.visual-mono .talk-top-badge__icon-img {
-  filter: grayscale(1) contrast(1.12);
-}
-
-.talk-page.visual-mono .visual-mode-toggle {
-  background: #eeeeee;
-  border-color: #777777;
-}
-
-.talk-page.visual-mono .visual-mode-toggle__btn {
-  color: #333333;
-}
-
-.talk-page.visual-mono .visual-mode-toggle__btn.is-active {
-  background: #ffffff;
-  color: #111111;
-}
-
-.talk-page.visual-mono .talk-filter__trigger {
-  background: #f2f2f2;
-  border-color: #555555;
-  color: #222222;
-}
-
-.talk-page.visual-mono .talk-filter__menu {
-  background: #f7f7f7;
-  border-color: #555555;
-}
-
-.talk-page.visual-mono .talk-filter__menu-button {
-  background: #f2f2f2;
-  color: #222222;
-}
-
-.talk-page.visual-mono .talk-filter__menu-button.is-highlighted,
-.talk-page.visual-mono .talk-filter__menu-button:hover {
-  background: #dedede;
-}
-
-/* Color blind mode */
-.talk-page.visual-colorblind {
-  --app-bg: #cfe8dc;
-  --shell-bg: #b9dcc9;
-  --shell-border: #557a68;
-  --home-blue: #0072b2;
-  --favorites-yellow: #e69f00;
-  --sentence-bg: #f9f9f9;
-  --sentence-border: #4f4f4f;
-  --grid-bg: #c2c2c2;
-  --grid-border: #5f6368;
-  --tile-bg: #f7f7f7;
-  --tile-hover: #ffffff;
-  --tile-active: #e6f2ff;
-  --tile-border: #5f6368;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--all {
-  background: #f5fff0;
-  border-color: #0072b2;
-  color: #2f3f38;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--basic,
-.talk-page.visual-colorblind .talk-filter__menu-button--basic {
-  background: #ffe8a3;
-  border-color: #a86f00;
-  color: #614000;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--pronoun,
-.talk-page.visual-colorblind .talk-filter__menu-button--pronoun {
-  background: #c7e5ff;
-  border-color: #006fb8;
-  color: #00416d;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--verb,
-.talk-page.visual-colorblind .talk-filter__menu-button--verb {
-  background: #cfefea;
-  border-color: #00796b;
-  color: #004d44;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--descriptor,
-.talk-page.visual-colorblind .talk-filter__menu-button--descriptor {
-  background: #e5d4ff;
-  border-color: #6a4fa3;
-  color: #39276d;
-}
-
-.talk-page.visual-colorblind .talk-filter__trigger--custom,
-.talk-page.visual-colorblind .talk-filter__menu-button--custom {
-  background: #ffd5b8;
-  border-color: #b85c00;
-  color: #663300;
-}
-
-@media (orientation: landscape) and (max-height: 520px) {
-  .talk-top-left {
-    gap: 5px;
-  }
-
-  .visual-mode-toggle {
-    gap: 2px;
-    padding: 2px;
-  }
-
-  .visual-mode-toggle__btn {
-    padding: 4px 6px;
-    font-size: 0.58rem;
-  }
-}
-
-@media (orientation: landscape) and (min-width: 900px) and (max-height: 1100px) {
-  .visual-mode-toggle {
-    padding: 3px;
-  }
-
-  .visual-mode-toggle__btn {
-    padding: 5px 9px;
-    font-size: 0.76rem;
-  }
-}
-
-/* =========================================================
-   Word search
-   ========================================================= */
-
-.talk-filter-right {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 14px;
-  margin-left: auto;
-}
-
-.talk-search {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.talk-search__label {
-  color: #4d5c46;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.talk-search__box {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 300px;
-}
-
-.talk-search__input {
-  width: 100%;
-  min-height: 54px;
-  padding: 0 46px 0 44px;
-  border: 3px solid #2d7fdb;
-  border-radius: 28px;
-  background: #f5fff0;
-  color: #44513f;
-  font: inherit;
-  font-size: 1rem;
-  font-weight: 700;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
-  outline: none;
-  appearance: none;
-}
-
-.talk-search__input::placeholder {
-  color: rgba(68, 81, 63, 0.68);
-}
-
-.talk-search__input:focus {
-  border-color: #1f73c9;
-  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12), 0 0 0 4px rgba(73, 168, 240, 0.2);
-}
-
-.talk-search__icon {
-  position: absolute;
-  left: 17px;
-  z-index: 1;
-  color: #44513f;
-  font-size: 1.2rem;
-  font-weight: 900;
-  pointer-events: none;
-}
-
-.talk-search__clear {
-  position: absolute;
-  right: 10px;
-  z-index: 2;
-  width: 34px;
-  height: 34px;
-  border: 2px solid #ffffff;
-  border-radius: 999px;
-  background: #ef5350;
-  color: #ffffff;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  font-size: 1.1rem;
-  font-weight: 900;
-  line-height: 1;
-  cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
-  transition:
-    transform 0.12s ease,
-    filter 0.12s ease,
-    box-shadow 0.12s ease;
-}
-
-.talk-search__clear:hover {
-  background: #e53935;
-  transform: scale(1.04);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
-}
-
-.talk-search__clear:active {
-  transform: scale(0.94);
-  background: #d32f2f;
-}
-
-/* Search visual modes */
-
-.talk-page.visual-mono .talk-search__input {
-  background: #f2f2f2;
-  border-color: #555555;
-  color: #222222;
-}
-
-.talk-page.visual-mono .talk-search__input::placeholder {
-  color: #666666;
-}
-
-.talk-page.visual-mono .talk-search__icon,
-.talk-page.visual-mono .talk-search__clear {
-  color: #222222;
-}
-
-.talk-page.visual-colorblind .talk-search__input {
-  background: #f5fff0;
-  border-color: #0072b2;
-  color: #2f3f38;
-}
-
-.talk-page.visual-colorblind .talk-search__input:focus {
-  border-color: #005f99;
-}
-
-/* Search responsive fixes */
-
-@media (max-width: 900px) {
-  .talk-filter-right {
-    width: 100%;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-left: 0;
-  }
-
-  .talk-search {
-    flex: 1;
-  }
-
-  .talk-search__box {
-    width: 100%;
-  }
-}
-
-@media (max-width: 700px) {
-  .talk-filter-right {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  .talk-search__input {
-    min-height: 46px;
-    font-size: 0.9rem;
-  }
-
-  .talk-filter__count {
-    align-self: flex-end;
-  }
-}
-
-@media screen and (orientation: landscape) and (min-width: 768px) and (max-width: 1400px) and (max-height: 1100px) {
-  .talk-filter-right {
-    gap: 10px;
-  }
-
-  .talk-search {
-    gap: 4px;
-  }
-
-  .talk-search__label {
-    font-size: 0.92rem;
-    margin-bottom: 2px;
-  }
-
-  .talk-search__box {
-    width: 250px;
-  }
-
-  .talk-search__input {
-    min-height: 46px;
-    padding: 0 42px 0 40px;
-    font-size: 0.95rem;
-    border-radius: 20px;
-  }
-
-  .talk-search__icon {
-    left: 15px;
-    font-size: 1.05rem;
-  }
-
-.talk-search__clear {
-    width: 30px;
-    height: 30px;
-    right: 8px;
-    font-size: 1rem;
-  }
-}
-
-@media (orientation: landscape) and (max-height: 520px) {
-  .talk-search__box {
-    width: 180px;
-  }
-
-  .talk-search__label {
-    font-size: 0.76rem;
-  }
-
-  .talk-search__input {
-    min-height: 38px;
-    padding: 0 34px 0 34px;
-    border-width: 2px;
-    border-radius: 16px;
-    font-size: 0.8rem;
-  }
-
-  .talk-search__icon {
-    left: 12px;
-    font-size: 0.9rem;
-  }
-
-  .talk-search__clear {
-    width: 24px;
-    height: 24px;
-    right: 7px;
-    font-size: 0.85rem;
-  }
-}
-
-@media screen and (orientation: landscape) and (max-width: 950px) and (max-height: 500px) {
-  .talk-filter-right {
-    gap: 8px;
-  }
-
-  .talk-search__box {
-    width: 180px;
-  }
-
-  .talk-search__label {
-    font-size: 0.76rem;
-    margin-bottom: 0;
-  }
-
-  .talk-search__input {
-    min-height: 38px;
-    padding: 0 34px 0 34px;
-    border-width: 2px;
-    border-radius: 16px;
-    font-size: 0.8rem;
-    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
-  }
-
-    .talk-search__clear {
-    width: 24px;
-    height: 24px;
-    right: 7px;
-    font-size: 0.85rem;
-  }
-}
-
-
-
-/* =========================================================
-   iPhone / small phone landscape showcase view
-   Compact, but still readable
-   ========================================================= */
 @media screen and (orientation: landscape) and (max-width: 950px) and (max-height: 500px) {
   .talk-page {
     height: 100dvh;
@@ -1373,6 +1364,10 @@
     gap: 8px;
   }
 
+  .talk-top-left {
+    gap: 5px;
+  }
+
   .talk-top-bar {
     margin-bottom: 0;
     gap: 8px;
@@ -1396,6 +1391,16 @@
     height: 13px;
   }
 
+  .visual-mode-toggle {
+    gap: 2px;
+    padding: 2px;
+  }
+
+  .visual-mode-toggle__btn {
+    padding: 4px 6px;
+    font-size: 0.58rem;
+  }
+
   .talk-sentence-bar {
     min-height: 0;
     height: 100%;
@@ -1414,11 +1419,6 @@
 
   .talk-filter {
     gap: 3px;
-  }
-
-  .talk-filter__label {
-    font-size: 0.76rem;
-    margin-bottom: 0;
   }
 
   .talk-filter__dropdown {
@@ -1446,9 +1446,29 @@
     font-size: 0.78rem;
   }
 
-  .talk-filter__count {
-    font-size: 0.76rem;
-    padding-bottom: 4px;
+  .talk-search__box {
+    width: 180px;
+  }
+
+  .talk-search__input {
+    min-height: 38px;
+    padding: 0 34px 0 34px;
+    border-width: 2px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .talk-search__icon {
+    left: 12px;
+    font-size: 0.9rem;
+  }
+
+  .talk-search__clear {
+    width: 24px;
+    height: 24px;
+    right: 7px;
+    font-size: 0.85rem;
   }
 
   .talk-grid {
@@ -1465,20 +1485,20 @@
     --tile-gap: 4px;
     --tile-icon-min-height: 18px;
     --tile-icon-size: clamp(18px, 3vw, 28px);
-    --tile-nav-icon-size: clamp(24px, 3.6vw, 36px);
-    --tile-label-size: clamp(0.66rem, 0.95vw, 0.82rem);
-    --tile-nav-label-size: clamp(0.64rem, 0.9vw, 0.78rem);
+    --tile-nav-icon-size: clamp(26px, 4vw, 40px);
+    --tile-label-size: clamp(0.62rem, 1.55vw, 0.82rem);
+    --tile-nav-label-size: clamp(0.58rem, 1.35vw, 0.72rem);
   }
 
   .talk-grid.is-medium {
     --tile-min-height: 0;
     --tile-padding: 3px 2px;
     --tile-gap: 2px;
-    --tile-icon-min-height: 10px;
-    --tile-icon-size: clamp(14px, 2vw, 20px);
-    --tile-nav-icon-size: clamp(18px, 2.8vw, 26px);
-    --tile-label-size: clamp(0.56rem, 0.76vw, 0.7rem);
-    --tile-nav-label-size: clamp(0.54rem, 0.74vw, 0.68rem);
+    --tile-icon-min-height: 12px;
+    --tile-icon-size: clamp(14px, 2.4vw, 22px);
+    --tile-nav-icon-size: clamp(20px, 3vw, 30px);
+    --tile-label-size: clamp(0.48rem, 1.2vw, 0.62rem);
+    --tile-nav-label-size: clamp(0.46rem, 1.1vw, 0.58rem);
   }
 
   .talk-grid.is-large {
@@ -1486,59 +1506,50 @@
     --tile-padding: 2px 1px;
     --tile-gap: 1px;
     --tile-icon-min-height: 8px;
-    --tile-icon-size: clamp(10px, 1.4vw, 14px);
-    --tile-nav-icon-size: clamp(12px, 2vw, 18px);
-    --tile-label-size: clamp(0.34rem, 0.45vw, 0.46rem);
-    --tile-nav-label-size: clamp(0.34rem, 0.45vw, 0.44rem);
+    --tile-icon-size: clamp(10px, 1.5vw, 16px);
+    --tile-nav-icon-size: clamp(14px, 2vw, 22px);
+    --tile-label-size: clamp(0.34rem, 0.9vw, 0.46rem);
+    --tile-nav-label-size: clamp(0.34rem, 0.88vw, 0.44rem);
   }
 
   .talk-tile {
     min-height: 0;
-    border-width: 1px;
   }
 
   .talk-tile__icon {
     min-height: 0;
-    height: clamp(14px, 2.8vh, 22px);
-    margin-bottom: 0;
+    height: clamp(12px, 4vh, 28px);
   }
 
   .talk-tile__icon-img {
     max-height: 100%;
     width: auto;
-    object-fit: contain;
-  }
-
-  .talk-tile__label {
-    line-height: 1;
-    letter-spacing: -0.01em;
   }
 
   .talk-controls {
-    gap: 8px;
+    gap: 6px;
     margin: 0;
   }
 
   .talk-control-btn {
-    --control-border: 4px;
-    --control-height: 48px;
-    --pill-radius: 28px;
-    --circle-size: 48px;
-    --label-size: 0.8rem;
-    --label-stroke: 2.2px;
-    --icon-size: 1.08rem;
-    --speak-icon-size: 1.14rem;
-    padding: 0 8px 0 54px;
+    --control-border: 3px;
+    --control-height: 42px;
+    --pill-radius: 24px;
+    --circle-size: 42px;
+    --label-size: 0.72rem;
+    --label-stroke: 2px;
+    --icon-size: 1rem;
+    --speak-icon-size: 1.05rem;
+    padding: 0 5px 0 47px;
   }
 
   .talk-page-indicator {
     margin-top: 0;
-    gap: 3px;
+    gap: 2px;
   }
 
   .talk-page-indicator__text {
-    font-size: 0.72rem;
-    line-height: 1;
+    font-size: 0.54rem;
   }
 
   .talk-page-indicator__dots {
@@ -1546,7 +1557,7 @@
   }
 
   .talk-page-indicator__dot {
-    width: 7px;
-    height: 7px;
+    width: 6px;
+    height: 6px;
   }
 }

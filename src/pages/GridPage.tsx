@@ -1,9 +1,11 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type CSSProperties,
+  type MouseEvent as ReactMouseEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
 import "./GridPage.css";
@@ -19,6 +21,13 @@ import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
 import homeIcon from "../assets/images/icons/home.png";
 import pizzaIcon from "../assets/images/icons/pizza.png";
+
+import deleteSound from "../assets/sounds/delete.wav";
+import gridsettingsMoveTileSound from "../assets/sounds/gridsettings_move_tile.wav";
+import gridsettingAddCustomWordSound from "../assets/sounds/gridsetting_add_custom_word.wav";
+import gridsettingSaveSound from "../assets/sounds/gridsetting_save.wav";
+import uiCancelSound from "../assets/sounds/ui_cancel.wav";
+import uiClickSound from "../assets/sounds/ui_click.wav";
 
 type TileCategory = "basic" | "pronoun" | "verb" | "descriptor" | "custom";
 
@@ -55,6 +64,27 @@ type AppDialog = {
   onClose?: (() => void) | null;
 };
 
+type SavedBoard = {
+  id: string;
+  name: string;
+  tiles: WordTile[];
+  gridPreset: GridPreset;
+  createdAt: number;
+  updatedAt: number;
+};
+
+type DefaultBoardSnapshot = {
+  tiles: WordTile[];
+  gridPreset: GridPreset;
+  updatedAt: number;
+};
+
+type BoardSnapshot = {
+  tiles: WordTile[];
+  gridPreset: GridPreset;
+  page: number;
+};
+
 const CUSTOM_TILE_CATEGORIES: { value: TileCategory; label: string }[] = [
   { value: "basic", label: "Basic" },
   { value: "pronoun", label: "Pronoun" },
@@ -63,8 +93,70 @@ const CUSTOM_TILE_CATEGORIES: { value: TileCategory; label: string }[] = [
   { value: "custom", label: "Custom" },
 ];
 
+const CUSTOM_BOARDS_STORAGE_KEY = "aac-custom-boards";
+const CUSTOM_BOARDS_EVENT = "aac-custom-boards-updated";
+const DEFAULT_BOARD_STORAGE_KEY = "aac-default-board-v2";
+
+const SOUND_SOURCES = {
+  click: uiClickSound,
+  moveTile: gridsettingsMoveTileSound,
+  delete: deleteSound,
+  save: gridsettingSaveSound,
+  cancel: uiCancelSound,
+  addCustomWord: gridsettingAddCustomWordSound,
+} as const;
+
+type SoundName = keyof typeof SOUND_SOURCES;
+
 function cloneTiles(tiles: WordTile[]): WordTile[] {
   return tiles.map((tile) => ({ ...tile }));
+}
+
+function readSavedBoards(): SavedBoard[] {
+  try {
+    const raw = localStorage.getItem(CUSTOM_BOARDS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed;
+  } catch {
+    return [];
+  }
+}
+
+function writeSavedBoards(boards: SavedBoard[]) {
+  localStorage.setItem(CUSTOM_BOARDS_STORAGE_KEY, JSON.stringify(boards));
+  window.dispatchEvent(new Event(CUSTOM_BOARDS_EVENT));
+}
+
+function readDefaultBoardSnapshot(): DefaultBoardSnapshot | null {
+  try {
+    const raw = localStorage.getItem(DEFAULT_BOARD_STORAGE_KEY);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw) as DefaultBoardSnapshot;
+
+    if (!Array.isArray(parsed.tiles)) return null;
+    if (!parsed.gridPreset) return null;
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeDefaultBoardSnapshot(tiles: WordTile[], preset: GridPreset) {
+  try {
+    const snapshot: DefaultBoardSnapshot = {
+      tiles: cloneTiles(tiles),
+      gridPreset: preset,
+      updatedAt: Date.now(),
+    };
+
+    localStorage.setItem(DEFAULT_BOARD_STORAGE_KEY, JSON.stringify(snapshot));
+  } catch {
+    // localStorage may fail in restricted browsers
+  }
 }
 
 function defaultCustomDraft(): CustomDraft {
@@ -100,6 +192,12 @@ function buildBlankTile(id: string): WordTile {
   };
 }
 
+function buildBlankTiles(prefix: string, count: number): WordTile[] {
+  return Array.from({ length: count }, (_, index) =>
+    buildBlankTile(`${prefix}-blank-${Date.now()}-${index}`)
+  );
+}
+
 function isBlankTile(tile: WordTile): boolean {
   return (
     tile.category === "blank" ||
@@ -107,13 +205,18 @@ function isBlankTile(tile: WordTile): boolean {
   );
 }
 
+function normalizeSearchText(text: string): string {
+  return text.trim().toLowerCase();
+}
+
 function makeNavTile(
   action: "previous" | "next",
   disabled: boolean,
-  pageIndex: number
+  pageIndex: number,
+  prefix = "nav"
 ): NavTile {
   return {
-    id: `${action}-preview-nav-${pageIndex}`,
+    id: `${prefix}-${action}-${pageIndex}`,
     label: action === "previous" ? "Previous" : "Next",
     icon: action === "previous" ? arrowLeftIcon : arrowRightIcon,
     type: "nav",
@@ -131,7 +234,8 @@ function buildVisibleGrid(
   cols: number,
   rows: number,
   currentPage: number,
-  totalPages: number
+  totalPages: number,
+  prefix = "preview"
 ): RenderTile[] {
   const topSectionCount = cols * (rows - 1);
   const bottomMiddleCount = cols - 2;
@@ -147,23 +251,23 @@ function buildVisibleGrid(
 
   while (filledTopTiles.length < topSectionCount) {
     filledTopTiles.push(
-      makeEmptyTile(`preview-empty-top-${currentPage}-${filledTopTiles.length}`)
+      makeEmptyTile(`${prefix}-empty-top-${currentPage}-${filledTopTiles.length}`)
     );
   }
 
   while (filledBottomTiles.length < bottomMiddleCount) {
     filledBottomTiles.push(
       makeEmptyTile(
-        `preview-empty-bottom-${currentPage}-${filledBottomTiles.length}`
+        `${prefix}-empty-bottom-${currentPage}-${filledBottomTiles.length}`
       )
     );
   }
 
   return [
     ...filledTopTiles,
-    makeNavTile("previous", currentPage === 0, currentPage),
+    makeNavTile("previous", currentPage === 0, currentPage, prefix),
     ...filledBottomTiles,
-    makeNavTile("next", currentPage === totalPages - 1, currentPage),
+    makeNavTile("next", currentPage === totalPages - 1, currentPage, prefix),
   ];
 }
 
@@ -201,31 +305,16 @@ function getCategoryPreviewStyle(category: TileCategory): CSSProperties {
 function getCategoryOptionStyle(category: TileCategory): CSSProperties {
   switch (category) {
     case "basic":
-      return {
-        backgroundColor: "#FFF0B8",
-        color: "#4a4332",
-      };
+      return { backgroundColor: "#FFF0B8", color: "#4a4332" };
     case "pronoun":
-      return {
-        backgroundColor: "#D8EBFF",
-        color: "#31485c",
-      };
+      return { backgroundColor: "#D8EBFF", color: "#31485c" };
     case "verb":
-      return {
-        backgroundColor: "#DDF6CF",
-        color: "#35513a",
-      };
+      return { backgroundColor: "#DDF6CF", color: "#35513a" };
     case "descriptor":
-      return {
-        backgroundColor: "#FFDDE3",
-        color: "#5a3940",
-      };
+      return { backgroundColor: "#FFDDE3", color: "#5a3940" };
     case "custom":
     default:
-      return {
-        backgroundColor: "#FFF2C7",
-        color: "#5a4a20",
-      };
+      return { backgroundColor: "#FFF2C7", color: "#5a4a20" };
   }
 }
 
@@ -253,15 +342,20 @@ export default function GridPage() {
     setBoardTiles,
     gridPreset,
     setGridPreset,
-    replaceTile,
   } = useBoardConfig();
+
+  const boardsMenuRef = useRef<HTMLDivElement | null>(null);
+  const soundRefs = useRef<Partial<Record<SoundName, HTMLAudioElement>>>({});
 
   const [currentPage, setCurrentPage] = useState(0);
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [customDraft, setCustomDraft] = useState<CustomDraft>(defaultCustomDraft());
   const [pendingCustomTile, setPendingCustomTile] = useState<WordTile | null>(null);
+  const [pendingCoreTile, setPendingCoreTile] = useState<WordTile | null>(null);
+  const [coreWordSearch, setCoreWordSearch] = useState("");
   const [customPulseTileId, setCustomPulseTileId] = useState<string | null>(null);
 
+  const [isCustomBoardMode, setIsCustomBoardMode] = useState(false);
   const [isMoveMode, setIsMoveMode] = useState(false);
   const [moveSourceTileId, setMoveSourceTileId] = useState<string | null>(null);
 
@@ -273,13 +367,84 @@ export default function GridPage() {
 
   const [dialog, setDialog] = useState<AppDialog | null>(null);
 
+  const [savedBoards, setSavedBoards] = useState<SavedBoard[]>([]);
+  const [isBoardsMenuOpen, setIsBoardsMenuOpen] = useState(false);
+  const [isSaveBoardModalOpen, setIsSaveBoardModalOpen] = useState(false);
+  const [customBoardName, setCustomBoardName] = useState("");
+  const [activeCustomBoardId, setActiveCustomBoardId] = useState<string | null>(null);
+  const [preCustomBoardSnapshot, setPreCustomBoardSnapshot] =
+    useState<BoardSnapshot | null>(null);
+
+  const [isCorePickerOpen, setIsCorePickerOpen] = useState(false);
+  const [corePickerPage, setCorePickerPage] = useState(0);
+
   const layout = GRID_LAYOUTS[gridPreset];
   const contentSlotsPerPage = layout.cols * layout.rows - 2;
   const totalPages = Math.max(1, Math.ceil(boardTiles.length / contentSlotsPerPage));
 
   useEffect(() => {
+    soundRefs.current = Object.entries(SOUND_SOURCES).reduce(
+      (acc, [name, src]) => {
+        const audio = new Audio(src);
+        audio.preload = "auto";
+        acc[name as SoundName] = audio;
+        return acc;
+      },
+      {} as Partial<Record<SoundName, HTMLAudioElement>>
+    );
+  }, []);
+
+  const playSound = (soundName: SoundName) => {
+    const audio = soundRefs.current[soundName];
+    if (!audio) return;
+
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      // Ignore browser autoplay restrictions or missing sound files.
+    });
+  };
+
+  const handlePageButtonClickCapture = (event: ReactMouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    const button = target.closest("button");
+
+    if (!button) return;
+    if (!event.currentTarget.contains(button)) return;
+    if (button.disabled || button.getAttribute("aria-disabled") === "true") return;
+
+    playSound("click");
+  };
+
+  useEffect(() => {
     setCurrentPage((prev) => Math.min(prev, totalPages - 1));
   }, [totalPages]);
+
+  useEffect(() => {
+    const syncBoards = () => {
+      setSavedBoards(readSavedBoards());
+    };
+
+    syncBoards();
+    window.addEventListener("storage", syncBoards);
+    window.addEventListener(CUSTOM_BOARDS_EVENT, syncBoards);
+
+    return () => {
+      window.removeEventListener("storage", syncBoards);
+      window.removeEventListener(CUSTOM_BOARDS_EVENT, syncBoards);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!boardsMenuRef.current) return;
+      if (!boardsMenuRef.current.contains(event.target as Node)) {
+        setIsBoardsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const currentContentTiles = useMemo(() => {
     const start = currentPage * contentSlotsPerPage;
@@ -294,9 +459,65 @@ export default function GridPage() {
         layout.cols,
         layout.rows,
         currentPage,
-        totalPages
+        totalPages,
+        "board"
       ),
     [currentContentTiles, layout.cols, layout.rows, currentPage, totalPages]
+  );
+
+  const coreWordOptions = useMemo(() => {
+    const seen = new Set<string>();
+
+    return INITIAL_BOARD_TILES.filter((tile) => {
+      if (isBlankTile(tile)) return false;
+      if (tile.label === "[sample]") return false;
+
+      const key = `${tile.label}-${tile.value}-${tile.category ?? "basic"}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+
+      return true;
+    }).sort((a, b) => a.label.localeCompare(b.label));
+  }, []);
+
+  const filteredCoreWordOptions = useMemo(() => {
+    const cleanedSearch = normalizeSearchText(coreWordSearch);
+    if (!cleanedSearch) return coreWordOptions;
+
+    return coreWordOptions.filter((tile) => {
+      const searchableText = normalizeSearchText(
+        `${tile.label} ${tile.value} ${tile.category ?? ""}`
+      );
+      return searchableText.includes(cleanedSearch);
+    });
+  }, [coreWordOptions, coreWordSearch]);
+
+  const corePickerTotalPages = Math.max(
+    1,
+    Math.ceil(filteredCoreWordOptions.length / contentSlotsPerPage)
+  );
+
+  useEffect(() => {
+    setCorePickerPage((prev) => Math.min(prev, corePickerTotalPages - 1));
+  }, [corePickerTotalPages]);
+
+  const corePickerContentTiles = useMemo(() => {
+    const start = corePickerPage * contentSlotsPerPage;
+    const end = start + contentSlotsPerPage;
+    return filteredCoreWordOptions.slice(start, end);
+  }, [filteredCoreWordOptions, corePickerPage, contentSlotsPerPage]);
+
+  const corePickerVisibleTiles = useMemo(
+    () =>
+      buildVisibleGrid(
+        corePickerContentTiles,
+        layout.cols,
+        layout.rows,
+        corePickerPage,
+        corePickerTotalPages,
+        "core-picker"
+      ),
+    [corePickerContentTiles, layout.cols, layout.rows, corePickerPage, corePickerTotalPages]
   );
 
   const hasModeChanges = modeHistory.length > 0;
@@ -338,6 +559,7 @@ export default function GridPage() {
   };
 
   const closeDialog = () => {
+    playSound("cancel");
     const onClose = dialog?.onClose;
     setDialog(null);
     onClose?.();
@@ -351,6 +573,10 @@ export default function GridPage() {
     onClose?.();
   };
 
+  const clearPendingCoreWord = () => {
+    setPendingCoreTile(null);
+  };
+
   const startModeSession = () => {
     setModeStartTiles(cloneTiles(boardTiles));
     setModeHistory([]);
@@ -358,6 +584,7 @@ export default function GridPage() {
     setDeletePulseTileId(null);
     setCustomPulseTileId(null);
     setPendingCustomTile(null);
+    clearPendingCoreWord();
   };
 
   const clearModeSession = () => {
@@ -370,6 +597,14 @@ export default function GridPage() {
   };
 
   const canSwitchIntoAnotherEditMode = () => {
+    if (pendingCustomTile || pendingCoreTile) {
+      showInfoDialog(
+        "Place or cancel selected tile",
+        "Please place or cancel the selected tile before starting another mode."
+      );
+      return false;
+    }
+
     if (!hasActiveEditMode) return true;
 
     if (hasModeChanges || moveSourceTileId || deletePulseTileId) {
@@ -402,10 +637,10 @@ export default function GridPage() {
   };
 
   const openCustomModal = () => {
-    if (hasActiveEditMode) {
+    if (hasActiveEditMode || pendingCoreTile) {
       showInfoDialog(
-        "Finish current edit mode",
-        "Please confirm or cancel the current edit mode first."
+        "Finish current action",
+        "Please finish or cancel the current action first."
       );
       return;
     }
@@ -417,6 +652,7 @@ export default function GridPage() {
   };
 
   const closeCustomModal = () => {
+    playSound("cancel");
     setIsCustomModalOpen(false);
   };
 
@@ -427,8 +663,7 @@ export default function GridPage() {
     const reader = new FileReader();
 
     reader.onload = () => {
-      const result =
-        typeof reader.result === "string" ? reader.result : pizzaIcon;
+      const result = typeof reader.result === "string" ? reader.result : pizzaIcon;
 
       setCustomDraft((prev) => ({
         ...prev,
@@ -441,66 +676,258 @@ export default function GridPage() {
   };
 
   const handleCustomDone = () => {
+    playSound("addCustomWord");
     setPendingCustomTile(buildCustomTile(customDraft));
+    clearPendingCoreWord();
     setCustomPulseTileId(null);
     setIsCustomModalOpen(false);
   };
 
-  const placePendingCustomTile = (targetTile: WordTile) => {
-    if (!pendingCustomTile) return;
+  const placeTileIntoTarget = (sourceTile: WordTile, targetTile: WordTile) => {
+    const nextTiles = cloneTiles(boardTiles).map((tile) =>
+      tile.id === targetTile.id
+        ? {
+            ...sourceTile,
+            id: targetTile.id,
+          }
+        : tile
+    );
 
-    replaceTile(targetTile.id, pendingCustomTile);
+    setBoardTiles(nextTiles);
     setPendingCustomTile(null);
+    clearPendingCoreWord();
     setCustomPulseTileId(null);
   };
 
-  const getCustomPlacementMessage = (targetTile: WordTile) => {
-    if (!pendingCustomTile) return "";
-
+  const getPlacementMessage = (sourceTile: WordTile, targetTile: WordTile) => {
     if (isBlankTile(targetTile)) {
-      return `Place "${pendingCustomTile.label}" as a ${pendingCustomTile.category} tile into this blank spot?`;
+      return `Place "${sourceTile.label}" as a ${
+        sourceTile.category ?? "basic"
+      } tile into this blank spot?`;
     }
 
-    return `Replace "${targetTile.label}" with "${pendingCustomTile.label}" and assign it to the ${pendingCustomTile.category} category?`;
+    return `Replace "${targetTile.label}" with "${sourceTile.label}" and assign it to the ${
+      sourceTile.category ?? "basic"
+    } category?`;
   };
 
-  const confirmCustomPlacement = (targetTile: WordTile) => {
-    if (!pendingCustomTile) return;
-
+  const confirmTilePlacement = (sourceTile: WordTile, targetTile: WordTile) => {
     setCustomPulseTileId(targetTile.id);
 
     showConfirmDialog({
-      title: "Place custom tile?",
-      message: getCustomPlacementMessage(targetTile),
+      title: "Place tile?",
+      message: getPlacementMessage(sourceTile, targetTile),
       confirmLabel: "Place Tile",
       cancelLabel: "Cancel",
       tone: "warning",
-      onConfirm: () => placePendingCustomTile(targetTile),
+      onConfirm: () => placeTileIntoTarget(sourceTile, targetTile),
       onClose: () => setCustomPulseTileId(null),
     });
   };
 
-  const addCustomToCurrentPage = () => {
+  const addCustomToWordGrid = () => {
     if (!pendingCustomTile) return;
 
-    const targetTile =
-      currentContentTiles.find((tile) => isBlankTile(tile)) ??
-      currentContentTiles.find((tile) => tile.label === "[sample]");
+    const tileToAdd = {
+      ...pendingCustomTile,
+      id: `custom-${Date.now()}`,
+    };
 
-    if (!targetTile) {
+    showConfirmDialog({
+      title: "Add custom tile?",
+      message: `Add "${tileToAdd.label}" to the word grid without replacing another tile?`,
+      confirmLabel: "Add Tile",
+      cancelLabel: "Cancel",
+      tone: "warning",
+      onConfirm: () => {
+        const nextTiles = [...cloneTiles(boardTiles), tileToAdd];
+        const addedTileIndex = nextTiles.length - 1;
+        const addedTilePage = Math.floor(addedTileIndex / contentSlotsPerPage);
+
+        setBoardTiles(nextTiles);
+        setPendingCustomTile(null);
+        setCustomPulseTileId(null);
+        setCurrentPage(addedTilePage);
+      },
+    });
+  };
+
+  const handleMakeCustomBoard = () => {
+    if (hasActiveEditMode || pendingCustomTile || pendingCoreTile) {
       showInfoDialog(
-        "No open spot found",
-        "There is no blank or [sample] spot on this page. Tap a tile below to replace it."
+        "Finish current action",
+        "Please finish or cancel the current action before making a custom board."
       );
       return;
     }
 
-    confirmCustomPlacement(targetTile);
+    showConfirmDialog({
+      title: "Make a custom board?",
+      message:
+        "This will start a blank custom board. You can add blank pages, choose words from the core word picker, and save it as your own board.",
+      confirmLabel: "Make Custom Board",
+      cancelLabel: "Cancel",
+      tone: "warning",
+      onConfirm: () => {
+        if (!isCustomBoardMode) {
+          writeDefaultBoardSnapshot(boardTiles, gridPreset);
+        }
+
+        setPreCustomBoardSnapshot({
+          tiles: cloneTiles(boardTiles),
+          gridPreset,
+          page: currentPage,
+        });
+
+        const firstBlankPage = buildBlankTiles(
+          "custom-board-page-1",
+          contentSlotsPerPage
+        );
+
+        setIsCustomBoardMode(true);
+        setActiveCustomBoardId(null);
+        clearModeSession();
+        setPendingCustomTile(null);
+        clearPendingCoreWord();
+        setCustomPulseTileId(null);
+        setCoreWordSearch("");
+        setBoardTiles(firstBlankPage);
+        setCurrentPage(0);
+      },
+    });
+  };
+
+  const handleViewDefaultBoard = () => {
+    if (hasActiveEditMode || pendingCustomTile || pendingCoreTile) {
+      showInfoDialog(
+        "Finish current action",
+        "Please finish or cancel the current action before viewing the default board."
+      );
+      return;
+    }
+
+    const savedDefaultBoard = readDefaultBoardSnapshot();
+
+    setIsCustomBoardMode(false);
+    setActiveCustomBoardId(null);
+    clearModeSession();
+    setPendingCustomTile(null);
+    clearPendingCoreWord();
+    setCustomPulseTileId(null);
+    setCoreWordSearch("");
+    setIsCorePickerOpen(false);
+
+    if (savedDefaultBoard) {
+      setBoardTiles(cloneTiles(savedDefaultBoard.tiles));
+      setGridPreset(savedDefaultBoard.gridPreset);
+    } else {
+      setBoardTiles(cloneTiles(INITIAL_BOARD_TILES));
+      setGridPreset("default");
+      writeDefaultBoardSnapshot(INITIAL_BOARD_TILES, "default");
+    }
+
+    setCurrentPage(0);
+  };
+
+  const handleCancelCustomBoard = () => {
+    if (!isCustomBoardMode) return;
+
+    showConfirmDialog({
+      title: "Cancel custom board?",
+      message:
+        "This will leave custom board mode and restore the board you were on before.",
+      confirmLabel: "Yes, Cancel",
+      cancelLabel: "Keep Editing",
+      tone: "danger",
+      onConfirm: () => {
+        playSound("cancel");
+
+        if (preCustomBoardSnapshot) {
+          setBoardTiles(cloneTiles(preCustomBoardSnapshot.tiles));
+          setGridPreset(preCustomBoardSnapshot.gridPreset);
+          setCurrentPage(preCustomBoardSnapshot.page);
+        } else {
+          setBoardTiles(cloneTiles(INITIAL_BOARD_TILES));
+          setGridPreset("default");
+          setCurrentPage(0);
+        }
+
+        setIsCustomBoardMode(false);
+        setActiveCustomBoardId(null);
+        setPendingCustomTile(null);
+        clearPendingCoreWord();
+        clearModeSession();
+        setCoreWordSearch("");
+        setIsCorePickerOpen(false);
+      },
+    });
+  };
+
+  const handleRestoreDefaultTalkpage = () => {
+    if (hasActiveEditMode || pendingCustomTile || pendingCoreTile) {
+      showInfoDialog(
+        "Finish current action",
+        "Please finish or cancel the current action before restoring the default talkpage."
+      );
+      return;
+    }
+
+    showConfirmDialog({
+      title: "Restore default talkpage?",
+      message:
+        "This will restore the default board back to the original core word set.",
+      confirmLabel: "Restore",
+      cancelLabel: "Cancel",
+      tone: "danger",
+      onConfirm: () => {
+        setIsCustomBoardMode(false);
+        setActiveCustomBoardId(null);
+        clearModeSession();
+        setPendingCustomTile(null);
+        clearPendingCoreWord();
+        setCustomPulseTileId(null);
+        setCoreWordSearch("");
+        setIsCorePickerOpen(false);
+        setBoardTiles(cloneTiles(INITIAL_BOARD_TILES));
+        setGridPreset("default");
+        setCurrentPage(0);
+        writeDefaultBoardSnapshot(INITIAL_BOARD_TILES, "default");
+      },
+    });
+  };
+
+
+  const addBlankPageToCustomBoard = () => {
+    const boardSnapshot = cloneTiles(boardTiles);
+    const remainder = boardSnapshot.length % contentSlotsPerPage;
+    const paddingCount = remainder === 0 ? 0 : contentSlotsPerPage - remainder;
+    const paddingTiles = buildBlankTiles("custom-board-padding", paddingCount);
+    const newBlankPage = buildBlankTiles(
+      `custom-board-page-${totalPages + 1}`,
+      contentSlotsPerPage
+    );
+
+    const nextTiles = [...boardSnapshot, ...paddingTiles, ...newBlankPage];
+    const newPageIndex = Math.floor(
+      (nextTiles.length - contentSlotsPerPage) / contentSlotsPerPage
+    );
+
+    setBoardTiles(nextTiles);
+    setCurrentPage(newPageIndex);
+  };
+
+  const selectCoreWord = (tile: WordTile) => {
+    setPendingCustomTile(null);
+    setCustomPulseTileId(null);
+    setPendingCoreTile({
+      ...tile,
+      id: `core-copy-${tile.id}-${Date.now()}`,
+    });
+    setIsCorePickerOpen(false);
   };
 
   const startMoveMode = () => {
     if (!canSwitchIntoAnotherEditMode()) return;
-
     setIsDeleteMode(false);
     setIsMoveMode(true);
     startModeSession();
@@ -508,7 +935,6 @@ export default function GridPage() {
 
   const startDeleteMode = () => {
     if (!canSwitchIntoAnotherEditMode()) return;
-
     setIsMoveMode(false);
     setIsDeleteMode(true);
     startModeSession();
@@ -517,6 +943,7 @@ export default function GridPage() {
   const handleUndoModeChange = () => {
     if (!modeHistory.length) return;
 
+    playSound("cancel");
     const previousSnapshot = modeHistory[modeHistory.length - 1];
     setBoardTiles(cloneTiles(previousSnapshot));
     setModeHistory((prev) => prev.slice(0, -1));
@@ -530,6 +957,8 @@ export default function GridPage() {
   };
 
   const handleCancelModeChanges = () => {
+    playSound("cancel");
+
     if (modeStartTiles) {
       setBoardTiles(cloneTiles(modeStartTiles));
     }
@@ -537,8 +966,16 @@ export default function GridPage() {
   };
 
   const handleCancelAll = () => {
+    playSound("cancel");
+
     if (pendingCustomTile) {
       setPendingCustomTile(null);
+      setCustomPulseTileId(null);
+      return;
+    }
+
+    if (pendingCoreTile) {
+      clearPendingCoreWord();
       setCustomPulseTileId(null);
       return;
     }
@@ -547,10 +984,11 @@ export default function GridPage() {
   };
 
   const deleteTileConfirmed = (targetTileId: string) => {
+    playSound("delete");
+
     const nextTiles = cloneTiles(boardTiles).map((tile) =>
       tile.id === targetTileId ? buildBlankTile(tile.id) : tile
     );
-
     applyBoardChange(nextTiles);
   };
 
@@ -583,36 +1021,25 @@ export default function GridPage() {
       };
     }
 
+    playSound("moveTile");
     applyBoardChange(nextTiles);
-  };
-
-  const handleRestoreDefaultTalkpage = () => {
-    showConfirmDialog({
-      title: "Restore default talkpage?",
-      message:
-        "This will restore the talkpage back to the original core word set list and remove your custom board changes.",
-      confirmLabel: "Restore",
-      cancelLabel: "Cancel",
-      tone: "danger",
-      onConfirm: () => {
-        setPendingCustomTile(null);
-        setCustomPulseTileId(null);
-        clearModeSession();
-        setBoardTiles(cloneTiles(INITIAL_BOARD_TILES));
-        setCurrentPage(0);
-      },
-    });
   };
 
   const handleWordTileClick = (tile: WordTile) => {
     if (pendingCustomTile) {
-      confirmCustomPlacement(tile);
+      confirmTilePlacement(pendingCustomTile, tile);
+      return;
+    }
+
+    if (pendingCoreTile) {
+      confirmTilePlacement(pendingCoreTile, tile);
       return;
     }
 
     if (isDeleteMode) {
       if (isBlankTile(tile)) return;
 
+      playSound("moveTile");
       setDeletePulseTileId(tile.id);
 
       showConfirmDialog({
@@ -621,12 +1048,8 @@ export default function GridPage() {
         confirmLabel: "Delete",
         cancelLabel: "Cancel",
         tone: "danger",
-        onConfirm: () => {
-          deleteTileConfirmed(tile.id);
-        },
-        onClose: () => {
-          setDeletePulseTileId(null);
-        },
+        onConfirm: () => deleteTileConfirmed(tile.id),
+        onClose: () => setDeletePulseTileId(null),
       });
 
       return;
@@ -658,43 +1081,245 @@ export default function GridPage() {
     });
   };
 
-  const handleSave = () => {
+  const handleCorePickerNav = (tile: NavTile) => {
+    if (tile.disabled) return;
+
+    setCorePickerPage((prev) => {
+      if (tile.action === "previous") return Math.max(prev - 1, 0);
+      return Math.min(prev + 1, corePickerTotalPages - 1);
+    });
+  };
+
+  const closeCorePicker = () => {
+    playSound("cancel");
+    setIsCorePickerOpen(false);
+  };
+
+  const closeSaveBoardModal = () => {
+    playSound("cancel");
+    setIsSaveBoardModalOpen(false);
+  };
+
+  const handleOpenSaveBoardModal = () => {
+    if (!isCustomBoardMode) {
+      writeDefaultBoardSnapshot(boardTiles, gridPreset);
+      playSound("save");
+
+      showInfoDialog(
+        "Default board saved",
+        "Your current default board layout has been saved.",
+        "Got it",
+        "success"
+      );
+
+      return;
+    }
+
+    setCustomBoardName(
+      activeCustomBoardId
+        ? savedBoards.find((board) => board.id === activeCustomBoardId)?.name ?? ""
+        : `Custom Board ${savedBoards.length + 1}`
+    );
+
+    setIsSaveBoardModalOpen(true);
+  };
+
+
+  const handleSaveCustomBoard = () => {
+    const cleanName = customBoardName.trim();
+    if (!cleanName) return;
+
+    const nextBoards = [...readSavedBoards()];
+    const now = Date.now();
+
+    if (activeCustomBoardId) {
+      const existingIndex = nextBoards.findIndex((board) => board.id === activeCustomBoardId);
+      if (existingIndex !== -1) {
+        nextBoards[existingIndex] = {
+          ...nextBoards[existingIndex],
+          name: cleanName,
+          tiles: cloneTiles(boardTiles),
+          gridPreset,
+          updatedAt: now,
+        };
+      }
+    } else {
+      const newBoard: SavedBoard = {
+        id: `saved-board-${now}`,
+        name: cleanName,
+        tiles: cloneTiles(boardTiles),
+        gridPreset,
+        createdAt: now,
+        updatedAt: now,
+      };
+      nextBoards.unshift(newBoard);
+      setActiveCustomBoardId(newBoard.id);
+    }
+
+    writeSavedBoards(nextBoards);
+    playSound("save");
+    setSavedBoards(nextBoards);
+    setIsSaveBoardModalOpen(false);
+
     showInfoDialog(
-      "Board saved",
-      "Board settings are saved for this session. Local/device saving can be added next.",
-      "Got it",
+      "Custom board saved",
+      `"${cleanName}" has been saved to your Custom Boards list.`,
+      "Nice",
       "success"
     );
   };
 
+  const handleLoadSavedBoard = (board: SavedBoard) => {
+    if (!isCustomBoardMode && !preCustomBoardSnapshot) {
+      setPreCustomBoardSnapshot({
+        tiles: cloneTiles(boardTiles),
+        gridPreset,
+        page: currentPage,
+      });
+    }
+
+    setBoardTiles(cloneTiles(board.tiles));
+    setGridPreset(board.gridPreset);
+    setCurrentPage(0);
+    setIsCustomBoardMode(true);
+    setActiveCustomBoardId(board.id);
+    setIsBoardsMenuOpen(false);
+    setPendingCustomTile(null);
+    clearPendingCoreWord();
+    clearModeSession();
+    setCoreWordSearch("");
+  };
+
+  const handleDeleteSavedBoard = (board: SavedBoard) => {
+    playSound("moveTile");
+
+    showConfirmDialog({
+      title: "Delete custom board?",
+      message: `Do you want to delete "${board.name}"?`,
+      confirmLabel: "Delete Board",
+      cancelLabel: "Cancel",
+      tone: "danger",
+      onConfirm: () => {
+        playSound("delete");
+
+        const nextBoards = readSavedBoards().filter((item) => item.id !== board.id);
+        writeSavedBoards(nextBoards);
+        setSavedBoards(nextBoards);
+
+        if (activeCustomBoardId === board.id) {
+          setActiveCustomBoardId(null);
+        }
+      },
+    });
+  };
+
   const isInteractiveMode = Boolean(
-    pendingCustomTile || isMoveMode || isDeleteMode
+    pendingCustomTile || pendingCoreTile || isMoveMode || isDeleteMode
   );
 
-  const previewModeClass = pendingCustomTile
-    ? "is-custom-mode"
-    : isMoveMode
-    ? "is-move-mode"
-    : isDeleteMode
-    ? "is-delete-mode"
-    : "";
+  const previewModeClass =
+    pendingCustomTile || pendingCoreTile
+      ? "is-custom-mode"
+      : isMoveMode
+      ? "is-move-mode"
+      : isDeleteMode
+      ? "is-delete-mode"
+      : isCustomBoardMode
+      ? "is-custom-board-mode"
+      : "";
 
   return (
-    <section className="grid-settings-page">
+    <section className="grid-settings-page" onClickCapture={handlePageButtonClickCapture}>
       <div className="grid-settings-shell">
-        <button
-          type="button"
-          className="grid-settings-home-badge"
-          aria-label="Go to home page"
-          onClick={() => navigate("/home")}
-        >
-          <img
-            src={homeIcon}
-            alt=""
-            className="grid-settings-home-badge__icon-img"
-          />
-          <span className="grid-settings-home-badge__text">Home</span>
-        </button>
+        <div className="grid-settings-quick-actions">
+          <div className="grid-custom-boards-dropdown" ref={boardsMenuRef}>
+            <button
+              type="button"
+              className="grid-settings-top-action is-boards"
+              onClick={() => setIsBoardsMenuOpen((prev) => !prev)}
+            >
+              View Custom Boards
+            </button>
+
+            {isBoardsMenuOpen && (
+              <div className="grid-custom-boards-dropdown__menu">
+                <div className="grid-custom-boards-dropdown__title">
+                  Saved Custom Boards
+                </div>
+
+                {savedBoards.length === 0 ? (
+                  <div className="grid-custom-boards-dropdown__empty">
+                    No custom boards saved yet.
+                  </div>
+                ) : (
+                  savedBoards.map((board) => (
+                    <div key={board.id} className="grid-custom-boards-dropdown__item">
+                      <button
+                        type="button"
+                        className="grid-custom-boards-dropdown__load"
+                        onClick={() => handleLoadSavedBoard(board)}
+                      >
+                        {board.name}
+                      </button>
+
+                      <button
+                        type="button"
+                        className="grid-custom-boards-dropdown__delete"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleDeleteSavedBoard(board);
+                        }}
+                        aria-label={`Delete ${board.name}`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="button"
+            className="grid-settings-top-action is-default-board"
+            onClick={handleViewDefaultBoard}
+          >
+            View Default Board
+          </button>
+
+          <button
+            type="button"
+            className={`grid-settings-top-action is-custom-board ${
+              isCustomBoardMode ? "is-active" : ""
+            }`}
+            onClick={handleMakeCustomBoard}
+          >
+            Make Custom Board
+          </button>
+
+          <button
+            type="button"
+            className="grid-settings-top-action is-back"
+            onClick={() => navigate("/user-config")}
+          >
+            ← Back to Config
+          </button>
+
+          <button
+            type="button"
+            className="grid-settings-home-badge"
+            aria-label="Go to home page"
+            onClick={() => navigate("/home")}
+          >
+            <img
+              src={homeIcon}
+              alt=""
+              className="grid-settings-home-badge__icon-img"
+            />
+            <span className="grid-settings-home-badge__text">Home</span>
+          </button>
+        </div>
 
         <div className="grid-settings-header">
           <div>
@@ -703,14 +1328,6 @@ export default function GridPage() {
               Change the board layout and manage custom tiles here.
             </p>
           </div>
-
-          <button
-            type="button"
-            className="grid-settings-back-btn"
-            onClick={() => navigate("/user-config")}
-          >
-            ← Back to Config
-          </button>
         </div>
 
         <div className="grid-settings-top">
@@ -785,7 +1402,7 @@ export default function GridPage() {
               <button
                 type="button"
                 className="grid-settings-action-btn is-save"
-                onClick={handleSave}
+                onClick={handleOpenSaveBoardModal}
               >
                 Save
               </button>
@@ -793,39 +1410,106 @@ export default function GridPage() {
 
             <p className="grid-settings-note">
               You can add custom tiles, move tiles around, delete tiles into blank spaces,
-              or restore the board back to the default talkpage.
+              restore the default board, or save your current board changes.
             </p>
           </section>
         </div>
 
-        {(pendingCustomTile || isMoveMode || isDeleteMode) && (
-          <div className="grid-placement-bar">
+        {isCustomBoardMode && (
+          <section className="grid-custom-board-panel">
+            <div className="grid-custom-board-panel__header">
+              <div>
+                <h2 className="grid-custom-board-panel__title">
+                  Custom Board Mode
+                </h2>
+                <p className="grid-custom-board-panel__subtitle">
+                  Search or choose a core word, then tap any tile below to place it.
+                </p>
+              </div>
+
+              <div className="grid-custom-board-panel__top-actions">
+                <button
+                  type="button"
+                  className="grid-custom-board-panel__page-btn"
+                  onClick={addBlankPageToCustomBoard}
+                >
+                  + Add Blank Page
+                </button>
+
+                <button
+                  type="button"
+                  className="grid-custom-board-panel__cancel-btn"
+                  onClick={handleCancelCustomBoard}
+                >
+                  Cancel Custom Board
+                </button>
+              </div>
+            </div>
+
+            <div className="grid-core-word-tools">
+              <label className="grid-core-word-field">
+                <span>Search Core Words</span>
+                <input
+                  type="text"
+                  value={coreWordSearch}
+                  onChange={(event) => setCoreWordSearch(event.target.value)}
+                  placeholder="Search words..."
+                />
+              </label>
+
+              <div className="grid-core-word-field">
+                <span>Core Words Dropdown</span>
+                <button
+                  type="button"
+                  className="grid-core-word-picker-btn"
+                  onClick={() => setIsCorePickerOpen(true)}
+                >
+                  {pendingCoreTile ? pendingCoreTile.label : "Choose a core word..."}
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
+
+        {(pendingCustomTile || pendingCoreTile || isMoveMode || isDeleteMode) && (
+          <div className={`grid-placement-bar ${previewModeClass}`}>
             <span className="grid-placement-bar__text">
               {pendingCustomTile &&
-                `Custom tile ready: ${pendingCustomTile.label}. Category: ${pendingCustomTile.category}. Tap any tile below to place it. You will get a confirmation popup before it is added.`}
+                `Custom tile ready: ${pendingCustomTile.label}. Category: ${pendingCustomTile.category}. Tap a tile below to replace it, or use Add to Word Grid.`}
 
-              {!pendingCustomTile && isMoveMode && !moveSourceTileId &&
+              {pendingCoreTile &&
+                `Core word selected: ${pendingCoreTile.label}. Tap any tile below to place it.`}
+
+              {!pendingCustomTile &&
+                !pendingCoreTile &&
+                isMoveMode &&
+                !moveSourceTileId &&
                 "Move mode is on. Tap the tile you want to move."}
 
-              {!pendingCustomTile && isMoveMode && moveSourceTileId &&
+              {!pendingCustomTile &&
+                !pendingCoreTile &&
+                isMoveMode &&
+                moveSourceTileId &&
                 "Now tap the destination tile. Existing tiles will swap. Blank tiles will move the word and leave the old tile blank."}
 
-              {!pendingCustomTile && isDeleteMode &&
-                'Delete mode is on. Tap any tile below to delete it. You will get an in-app "Are you sure?" warning before it is removed.'}
+              {!pendingCustomTile &&
+                !pendingCoreTile &&
+                isDeleteMode &&
+                'Delete mode is on. Tap any tile below to delete it. You will get an in-app "Are you sure?" warning first.'}
             </span>
 
             <div className="grid-placement-bar__actions">
               {pendingCustomTile && (
                 <button
                   type="button"
-                  className="grid-placement-bar__btn"
-                  onClick={addCustomToCurrentPage}
+                  className="grid-placement-bar__btn is-add"
+                  onClick={addCustomToWordGrid}
                 >
-                  Add to Current Page
+                  Add to Word Grid
                 </button>
               )}
 
-              {!pendingCustomTile && hasActiveEditMode && (
+              {!pendingCustomTile && !pendingCoreTile && hasActiveEditMode && (
                 <>
                   <button
                     type="button"
@@ -903,7 +1587,9 @@ export default function GridPage() {
                         draggable="false"
                       />
                     </span>
-                    <span className="grid-preview-tile__label">{tile.label}</span>
+                    <span className="grid-preview-tile__label">
+                      {tile.label}
+                    </span>
                   </button>
                 );
               }
@@ -921,7 +1607,7 @@ export default function GridPage() {
                   className={`grid-preview-tile is-word ${
                     blank ? "is-blank-word" : ""
                   } ${isInteractiveMode ? "is-interactive" : ""} ${
-                    pendingCustomTile ? "is-replaceable" : ""
+                    pendingCustomTile || pendingCoreTile ? "is-replaceable" : ""
                   } ${isMoveMode ? "is-movable" : ""} ${
                     isDeleteMode && !blank ? "is-deletable" : ""
                   } ${selectedSource ? "is-selected-source" : ""} ${
@@ -940,7 +1626,9 @@ export default function GridPage() {
                           draggable="false"
                         />
                       </span>
-                      <span className="grid-preview-tile__label">{tile.label}</span>
+                      <span className="grid-preview-tile__label">
+                        {tile.label}
+                      </span>
                     </>
                   )}
                 </button>
@@ -1045,7 +1733,11 @@ export default function GridPage() {
 
             <label className="grid-custom-modal__field">
               <span>Image</span>
-              <input type="file" accept="image/*" onChange={handleCustomImageChange} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleCustomImageChange}
+              />
               <small>{customDraft.fileName || "No file selected yet"}</small>
             </label>
 
@@ -1070,12 +1762,171 @@ export default function GridPage() {
         </div>
       )}
 
+      {isCorePickerOpen && (
+        <div
+          className="grid-custom-modal-backdrop grid-core-picker-backdrop"
+          onClick={closeCorePicker}
+        >
+          <div
+            className="grid-core-picker-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Choose a core word"
+          >
+            <section className="grid-settings-card grid-settings-preview-card is-custom-board-mode">
+              <div className="grid-settings-preview-header">
+                <h2 className="grid-settings-card__title">Core Words Dropdown</h2>
+                <span className="grid-settings-preview-meta">
+                  Pick a word to place onto the board
+                </span>
+              </div>
+
+              <div
+                className={`grid-preview-grid is-${gridPreset} is-custom-board-mode`}
+                style={{ "--grid-preview-cols": layout.cols } as CSSProperties}
+              >
+                {corePickerVisibleTiles.map((tile) => {
+                  if (tile.type === "empty") {
+                    return (
+                      <div
+                        key={tile.id}
+                        className="grid-preview-tile is-empty"
+                        aria-hidden="true"
+                      />
+                    );
+                  }
+
+                  if (tile.type === "nav") {
+                    return (
+                      <button
+                        key={tile.id}
+                        type="button"
+                        className={`grid-preview-tile is-nav ${
+                          tile.disabled ? "is-disabled" : ""
+                        }`}
+                        onClick={() => handleCorePickerNav(tile)}
+                      >
+                        <span className="grid-preview-tile__icon">
+                          <img
+                            src={tile.icon}
+                            alt=""
+                            className="grid-preview-tile__icon-img"
+                            draggable="false"
+                          />
+                        </span>
+                        <span className="grid-preview-tile__label">
+                          {tile.label}
+                        </span>
+                      </button>
+                    );
+                  }
+
+                  const categoryClass = getTileCategoryClass(tile.category);
+
+                  return (
+                    <button
+                      key={tile.id}
+                      type="button"
+                      className={`grid-preview-tile is-word ${categoryClass}`}
+                      onClick={() => selectCoreWord(tile)}
+                    >
+                      <span className="grid-preview-tile__icon">
+                        <img
+                          src={tile.icon}
+                          alt=""
+                          className="grid-preview-tile__icon-img"
+                          draggable="false"
+                        />
+                      </span>
+                      <span className="grid-preview-tile__label">
+                        {tile.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="grid-preview-page-indicator">
+                <span className="grid-preview-page-indicator__text">
+                  Page {corePickerPage + 1} of {corePickerTotalPages}
+                </span>
+                <div className="grid-preview-page-indicator__dots" aria-hidden="true">
+                  {Array.from({ length: corePickerTotalPages }, (_, index) => (
+                    <span
+                      key={`core-dot-${index}`}
+                      className={`grid-preview-page-indicator__dot ${
+                        index === corePickerPage ? "is-active" : ""
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid-core-picker-modal__actions">
+                <button
+                  type="button"
+                  className="grid-custom-modal__btn is-secondary"
+                  onClick={closeCorePicker}
+                >
+                  Close
+                </button>
+              </div>
+            </section>
+          </div>
+        </div>
+      )}
+
+      {isSaveBoardModalOpen && (
+        <div
+          className="grid-custom-modal-backdrop"
+          onClick={closeSaveBoardModal}
+        >
+          <div
+            className="grid-save-board-modal"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Save custom board"
+          >
+            <h2 className="grid-custom-modal__title">Save Custom Board</h2>
+
+            <label className="grid-custom-modal__field">
+              <span>Board Name</span>
+              <input
+                type="text"
+                value={customBoardName}
+                onChange={(event) => setCustomBoardName(event.target.value)}
+                placeholder="Type a board name"
+                maxLength={40}
+              />
+            </label>
+
+            <div className="grid-custom-modal__actions">
+              <button
+                type="button"
+                className="grid-custom-modal__btn is-secondary"
+                onClick={closeSaveBoardModal}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                className="grid-custom-modal__btn"
+                onClick={handleSaveCustomBoard}
+              >
+                Save Board
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {dialog && (
         <div className="grid-app-dialog-backdrop" onClick={closeDialog}>
           <div
-            className={`grid-app-dialog ${
-              dialog.tone ? `is-${dialog.tone}` : ""
-            }`}
+            className={`grid-app-dialog ${dialog.tone ? `is-${dialog.tone}` : ""}`}
             onClick={(event) => event.stopPropagation()}
             role="dialog"
             aria-modal="true"
