@@ -25,6 +25,9 @@ import {
 } from "../context/BoardConfigContext";
 import { useSessionLogger } from "../hooks/useSessionLogger";
 import { usePrediction } from "../hooks/usePrediction";
+import { hasPin, checkPin, isPinSetupComplete } from "../hooks/usePIN";
+import PinOverlay from "../components/PinOverlay";
+import FirstLoadModal from "../components/FirstLoadModal";
 
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
@@ -468,6 +471,9 @@ const TalkPage = () => {
   const customBoardsRef = useRef<HTMLDivElement | null>(null);
   const soundBankRef = useRef<Record<SoundKey, HTMLAudioElement> | null>(null);
 
+  const [showPinOverlay, setShowPinOverlay] = useState(false);
+  const [showFirstLoad,  setShowFirstLoad]  = useState(false);
+
   const displayedSentence = sentenceWords.join(" ");
 
   const { prediction, acceptPrediction, clearPrediction } = usePrediction(
@@ -520,6 +526,11 @@ const TalkPage = () => {
       });
     };
   }, []);
+
+  useEffect(() => {
+    if (!db) return;
+    if (!isPinSetupComplete(db)) setShowFirstLoad(true);
+  }, [db]);
 
   useEffect(() => {
     primeTTSVoices();
@@ -979,7 +990,13 @@ const TalkPage = () => {
             type="button"
             className="talk-top-badge talk-top-badge--home"
             aria-label="Go to home page"
-            onClick={() => navigate("/home")}
+            onClick={() => {
+                if (!db || !hasPin(db)) {
+                  navigate("/home");
+                } else {
+                  setShowPinOverlay(true);
+                }
+              }}
           >
             <img src={homeIcon} alt="" className="talk-top-badge__icon-img" />
             <span className="talk-top-badge__text">Home</span>
@@ -1204,6 +1221,21 @@ const TalkPage = () => {
           </div>
         </div>
       </div>
+      {showPinOverlay && db && (
+        <PinOverlay
+          title="Admin Access"
+          onCheck={(input) => checkPin(db, input)}
+          onSuccess={() => { setShowPinOverlay(false); navigate("/home"); }}
+          onCancel={() => setShowPinOverlay(false)}
+        />
+      )}
+
+      {showFirstLoad && db && (
+        <FirstLoadModal
+          db={db}
+          onDone={() => setShowFirstLoad(false)}
+        />
+      )}
     </section>
   );
 };
