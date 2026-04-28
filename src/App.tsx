@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import LoadingScreen from "./components/LoadingScreen";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home";
 import TalkPage from "./pages/TalkPage";
@@ -9,6 +11,20 @@ import GridPage from "./pages/GridPage";
 import { BoardConfigProvider } from "./context/BoardConfigContext";
 
 export default function App() {
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const loadingTimer = window.setTimeout(() => {
+      setIsLoading(false);
+    }, 2500);
+
+    return () => window.clearTimeout(loadingTimer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
+
   return (
     <BoardConfigProvider>
       <Routes>
