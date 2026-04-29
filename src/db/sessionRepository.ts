@@ -212,13 +212,30 @@ export function getDailyUsage(
      ORDER BY date ASC;`,
     [profileId, since]
   );
-  return (
-    result[0]?.values.map((r) => ({
-      date:  r[0] as string,
-      count: r[1] as number,
-    })) ?? []
-  );
+
+  // Map results to DailyUsage format
+  const rows = result[0]?.values.map((r) => ({
+    date:  r[0] as string,
+    count: r[1] as number,
+  })) ?? [];
+
+  // Create a map for quick lookup
+  const map = new Map(rows.map(r => [r.date, r.count]));
+    
+  // Fill in missing days with count 0
+  const daysArray: DailyUsage[] = [];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+      .toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    daysArray.push({ date, count: map.get(date) ?? 0 });
+
+  }
+
+  return daysArray;
 }
+
 
 //query to have total words spokem, number of sessions, average session time
 export interface ProfileStats {
@@ -298,4 +315,51 @@ export function getPredictions(
       last_seen:   r[4] as number,
     })) ?? []
   );
+}
+
+
+export function getTopWordsSince(
+  db: Database,
+  profileId: string,
+  since: number,
+  limit = 5
+): WordFrequency[] {
+  const result = db.exec(
+    `SELECT word, word_id, category, COUNT(*) as count
+     FROM word_events
+     WHERE profile_id = ? AND timestamp >= ?
+     GROUP BY word_id
+     ORDER BY count DESC
+     LIMIT ?;`,
+    [profileId, since, limit]
+  );
+
+  return result[0]?.values.map((r) => ({
+    word: r[0] as string,
+    word_id: r[1] as string,
+    category: r[2] as string,
+    count: r[3] as number,
+  })) ?? [];
+}
+
+export function getCategoryUsageSince(
+  db: Database,
+  profileId: string,
+  since: number,
+  limit = 5
+): CategoryUsage[] {
+  const result = db.exec(
+    `SELECT category, COUNT(*) as count
+     FROM word_events
+     WHERE profile_id = ? AND timestamp >= ?
+     GROUP BY category
+     ORDER BY count DESC
+     LIMIT ?;`,
+    [profileId, since, limit]
+  );
+
+  return result[0]?.values.map((r) => ({
+    category: r[0] as string,
+    count: r[1] as number,
+  })) ?? [];
 }
