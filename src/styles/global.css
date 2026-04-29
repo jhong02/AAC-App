@@ -91,6 +91,9 @@ body{
     20px -10px 0px 0px white;
 
   opacity: 0.9;
+
+  position: absolute;
+  z-index: 0;
 }
 
 .text-outline {
