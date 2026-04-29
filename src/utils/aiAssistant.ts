@@ -1,124 +1,140 @@
 /**
  * aiAssistant.ts
  *
- * AI inference using MediaPipe Gemma running entirely on-device.
- * The model downloads once (~1.5GB) and is cached in the browser forever.
- * No API key, no server, no data leaves the device.
+ * On-device AI inference using Transformers.js (@huggingface/transformers).
+ * Model: Qwen2.5-0.5B-Instruct (ONNX, no auth required, ~400MB)
  *
- * Stage 2 note: when moving to Capacitor mobile, update MODEL_PATH
- * to use Capacitor filesystem and add the isCapacitor env check.
+ * - Downloads automatically on first use, cached in browser forever
+ * - No API key, no account, no server
+ * - Works in browser via WebGPU (fast) or WASM fallback (slower but universal)
+ * - Same code works in Capacitor mobile app
+ *
+ * Stage 2 (mobile): add device check and swap to WASM explicitly
+ * for older iPads that don't support WebGPU.
  */
 
-import { FilesetResolver, LlmInference } from "@mediapipe/tasks-genai";
- 
-const MODEL_URL =
-  "https://storage.googleapis.com/mediapipe-models/llm_inference/gemma-2b-it-gpu-int8/float16/1/gemma-2b-it-gpu-int8.bin";
- 
-const WASM_PATH =
-  "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-genai/wasm";
- 
-// Singleton engine — initialized once, reused for all calls
-let engine: LlmInference | null = null;
-let engineLoading = false;
- 
+import { pipeline, env } from "@huggingface/transformers";
+
+// Use browser cache — model persists across sessions
+env.allowLocalModels = false;
+env.useBrowserCache = true;
+
+const MODEL_ID = "onnx-community/Qwen2.5-0.5B-Instruct";
+
+// Singleton pipeline — initialized once, reused for all calls
+let generator: any = null;
+let generatorLoading = false;
+
 export type DownloadProgressCallback = (percent: number) => void;
- 
+
 /**
- * Check if WebGPU is available on this device.
- * Required for MediaPipe Gemma to run.
+ * Check if the device can run AI inference.
+ * Returns true if WebGPU or WASM is available.
+ * WASM is always available in modern browsers so this is almost always true.
  */
 export async function checkAIAvailable(): Promise<boolean> {
-  if (typeof navigator === "undefined") return false;
-  if (!("gpu" in navigator)) return false;
-  try {
-    const adapter = await (navigator as any).gpu.requestAdapter();
-    return !!adapter;
-  } catch {
-    return false;
-  }
+  if (typeof window === "undefined") return false;
+  // WASM is the universal fallback — available on all modern browsers
+  return typeof WebAssembly !== "undefined";
 }
- 
+
 /**
- * Check if the model has already been downloaded and cached.
+ * Check if the model is already cached in the browser.
  */
 export async function isModelCached(): Promise<boolean> {
   try {
-    const cache = await caches.open("mediapipe-gemma");
-    const match = await cache.match(MODEL_URL);
-    return !!match;
+    const cache = await caches.open("transformers-cache");
+    const keys = await cache.keys();
+    return keys.some((k) => k.url.includes("Qwen2.5-0.5B"));
   } catch {
+    // If cache API unavailable, assume not cached
     return false;
   }
 }
- 
+
+/**
+ * Initialize the pipeline with optional progress tracking.
+ * Transformers.js handles the download and caching automatically.
+ */
+async function getGenerator(
+  onProgress?: DownloadProgressCallback
+): Promise<any> {
+  if (generator) return generator;
+  if (generatorLoading) return null;
+
+  generatorLoading = true;
+
+  try {
+    // Try WebGPU first for speed, fall back to WASM
+    const device = (navigator as any).gpu ? "webgpu" : "wasm";
+
+    generator = await pipeline("text-generation", MODEL_ID, {
+      device,
+      dtype: "q4",
+      progress_callback: onProgress
+        ? (progress: any) => {
+            if (progress.status === "downloading" && progress.total > 0) {
+              onProgress(Math.round((progress.loaded / progress.total) * 100));
+            }
+          }
+        : undefined,
+    });
+
+    return generator;
+  } catch {
+    generatorLoading = false;
+    return null;
+  }
+}
+
 /**
  * Download the model with progress tracking.
- * Stores in browser cache so subsequent loads are instant.
+ * Since Transformers.js downloads automatically during pipeline init,
+ * this just initializes the pipeline and tracks progress.
  */
 export async function downloadModel(
   onProgress: DownloadProgressCallback
 ): Promise<boolean> {
   try {
-    const response = await fetch(MODEL_URL);
-    if (!response.ok || !response.body) return false;
- 
-    const contentLength = Number(response.headers.get("content-length") ?? 0);
-    const reader = response.body.getReader();
-    const chunks: Uint8Array[] = [];
-    let received = 0;
- 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      chunks.push(value);
-      received += value.length;
-      if (contentLength > 0) {
-        onProgress(Math.round((received / contentLength) * 100));
-      }
-    }
- 
-    // Store in cache
-    const blob = new Blob(chunks as BlobPart[]);
-    const cache = await caches.open("mediapipe-gemma");
-    await cache.put(MODEL_URL, new Response(blob));
- 
-    onProgress(100);
-    return true;
+    const gen = await getGenerator(onProgress);
+    return !!gen;
   } catch {
     return false;
   }
 }
- 
+
 /**
- * Initialize the MediaPipe engine.
- * Uses cached model if available.
- */
-async function getEngine(): Promise<LlmInference | null> {
-  if (engine) return engine;
-  if (engineLoading) return null;
- 
-  engineLoading = true;
-  try {
-    const genai = await FilesetResolver.forGenAiTasks(WASM_PATH);
-    engine = await LlmInference.createFromModelPath(genai, MODEL_URL);
-    return engine;
-  } catch {
-    engineLoading = false;
-    return null;
-  }
-}
- 
-/**
- * Generate a text response from Gemma.
- * Returns null if the model is unavailable or not downloaded.
+ * Generate a text response from the model.
+ * Returns null if the model is unavailable.
  */
 export async function generateInsight(prompt: string): Promise<string | null> {
   try {
-    const llm = await getEngine();
-    if (!llm) return null;
- 
-    const response = await llm.generateResponse(prompt);
-    return response?.trim() ?? null;
+    const gen = await getGenerator();
+    if (!gen) return null;
+
+    const messages = [
+      {
+        role: "system",
+        content:
+          "You are an ABA therapy assistant. Respond only with the four labeled sections requested. No extra text.",
+      },
+      { role: "user", content: prompt },
+    ];
+
+    const output = await gen(messages, {
+      max_new_tokens: 500,
+      temperature: 0.4,
+      top_k: 40,
+      do_sample: true,
+    });
+
+    // Extract assistant response text
+    const text =
+      output?.[0]?.generated_text?.at(-1)?.content?.trim() ??
+      output?.[0]?.generated_text?.trim() ??
+      null;
+
+    return text;
   } catch {
     return null;
   }
