@@ -363,3 +363,89 @@ export function getCategoryUsageSince(
     count: r[1] as number,
   })) ?? [];
 }
+// ─── Inter-tap stats ───────────────────────────────────────────────
+
+export interface InterTapStats {
+  averageMs:       number;
+  fastestMs:       number;
+  slowestMs:       number;
+  hesitations:     number; // gaps > 5 seconds
+  hesitationRate:  number; // percentage of taps preceded by hesitation
+}
+
+const HESITATION_THRESHOLD_MS = 5000;   // 5 seconds
+const MAX_GAP_MS              = 300000; // 5 minutes — beyond this assumed sentence break
+
+export function getInterTapStats(
+  db: Database,
+  profileId: string,
+  since = 0
+): InterTapStats | null {
+  const result = db.exec(
+    `SELECT timestamp FROM word_events
+     WHERE profile_id = ? AND timestamp >= ?
+     ORDER BY timestamp ASC;`,
+    [profileId, since]
+  );
+
+  const timestamps = result[0]?.values.map((r) => r[0] as number) ?? [];
+  if (timestamps.length < 2) return null;
+
+  const gaps: number[] = [];
+  for (let i = 1; i < timestamps.length; i++) {
+    const gap = timestamps[i] - timestamps[i - 1];
+    if (gap < MAX_GAP_MS) gaps.push(gap);
+  }
+
+  if (gaps.length === 0) return null;
+
+  const avg          = gaps.reduce((a, b) => a + b, 0) / gaps.length;
+  const fastest      = Math.min(...gaps);
+  const slowest      = Math.max(...gaps);
+  const hesitations  = gaps.filter((g) => g > HESITATION_THRESHOLD_MS).length;
+
+  return {
+    averageMs:      Math.round(avg),
+    fastestMs:      fastest,
+    slowestMs:      slowest,
+    hesitations,
+    hesitationRate: Math.round((hesitations / gaps.length) * 100),
+  };
+}
+
+// ─── Sentence complexity ───────────────────────────────────────────
+
+export interface SentenceComplexityStats {
+  avgLength:    number;
+  maxLength:    number;
+  totalSentences: number;
+}
+
+export function getSentenceComplexity(
+  db: Database,
+  profileId: string,
+  since = 0
+): SentenceComplexityStats | null {
+  // Use position field — each new sentence resets position to 0
+  // Max position per session gives sentence length
+  const result = db.exec(
+    `SELECT session_id, MAX(position) + 1 as sentence_length
+     FROM word_events
+     WHERE profile_id = ? AND timestamp >= ?
+     GROUP BY session_id
+     HAVING sentence_length > 0;`,
+    [profileId, since]
+  );
+
+  const lengths = result[0]?.values.map((r) => r[1] as number) ?? [];
+  if (lengths.length === 0) return null;
+
+  const avg = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+  const max = Math.max(...lengths);
+
+  return {
+    avgLength:      Math.round(avg * 10) / 10,
+    maxLength:      max,
+    totalSentences: lengths.length,
+  };
+}
