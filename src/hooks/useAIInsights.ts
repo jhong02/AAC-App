@@ -23,7 +23,7 @@ import {
 
 const PROFILE_ID = "default_profile";
 
-export type Timeframe = "day" | "month" | "year" | "total";
+export type Timeframe = "day" | "week" | "month" | "year" | "total";
 
 export interface AIInsight {
   summary:            string;
@@ -55,6 +55,7 @@ function getSinceMs(timeframe: Timeframe): number {
   const now = Date.now();
   switch (timeframe) {
     case "day":   return now - 1   * 24 * 60 * 60 * 1000;
+    case "week":  return now - 7   * 24 * 60 * 60 * 1000;
     case "month": return now - 30  * 24 * 60 * 60 * 1000;
     case "year":  return now - 365 * 24 * 60 * 60 * 1000;
     case "total": return 0;
@@ -81,6 +82,7 @@ function buildDataContext(
 ): string {
   const timeLabel =
     timeframe === "day"   ? "the past 24 hours" :
+    timeframe === "week"  ? "the past 7 days"   :
     timeframe === "month" ? "the past 30 days"  :
     timeframe === "year"  ? "the past year"      :
     "all time";
@@ -249,6 +251,7 @@ export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
       // Build shared data context
       const timeLabel =
         timeframe === "day"   ? "the past 24 hours" :
+        timeframe === "week"  ? "the past 7 days"   :
         timeframe === "month" ? "the past 30 days"  :
         timeframe === "year"  ? "the past year"      :
         "all time";

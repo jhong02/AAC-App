@@ -40,6 +40,17 @@ function rowToWordEvent(row: unknown[]): WordEvent {
 
 //Begin Session
 export function startSession(db: Database, profileId: string): Session {
+  // Check for existing open session for this profile
+  const existing = db.exec(
+    "SELECT * FROM sessions WHERE profile_id = ? AND ended_at IS NULL LIMIT 1;",
+    [profileId]
+  );
+
+  if (existing[0]?.values.length) {
+    return rowToSession(existing[0].values[0]);
+  }
+
+  // No open session, create new one
   const id = uuid();
   const now = Date.now();
 
