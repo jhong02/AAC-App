@@ -59,7 +59,7 @@ export default function AudioPage() {
         </div>
 
         <header className="audio-hero">
-          <h1>Audio Settings</h1>
+          <h1>📢 Audio Settings</h1>
           <p>Choose how the board speaks words and sentences.</p>
         </header>
 
