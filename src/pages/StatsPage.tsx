@@ -283,7 +283,7 @@ export default function StatsPage() {
               </p>
             )}
 
-            {modelStatus === "not-downloaded" && (
+            {modelStatus === "not-loaded" && (
               <div className="ai-insights-empty">
                 <p>Download the AI model to enable session insights.</p>
                 <p className="ai-insights-size">One-time download — approximately 1.5 GB. Requires wifi.</p>
@@ -293,7 +293,7 @@ export default function StatsPage() {
               </div>
             )}
 
-            {modelStatus === "downloading" && (
+            {modelStatus === "loading" && (
               <div className="ai-insights-loading">
                 <p>Downloading AI model... {downloadProgress}%</p>
                 <div className="ai-loading-bar">

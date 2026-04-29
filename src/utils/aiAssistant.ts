@@ -4,57 +4,67 @@
  * On-device AI inference using Transformers.js (@huggingface/transformers).
  * Model: Qwen2.5-0.5B-Instruct (ONNX, no auth required, ~400MB)
  *
- * - Downloads automatically on first use, cached in browser forever
+ * - Downloads automatically on first use, cached in browser or device filesystem
  * - No API key, no account, no server
- * - Works in browser via WebGPU (fast) or WASM fallback (slower but universal)
- * - Same code works in Capacitor mobile app
- *
- * Stage 2 (mobile): add device check and swap to WASM explicitly
- * for older iPads that don't support WebGPU.
+ * - Works in browser via WebGPU (fast) or WASM fallback (universal)
+ * - Works in Capacitor iOS/Android via the same WASM path
+ * - isCapacitor check routes storage correctly for each environment
  */
 
 import { pipeline, env } from "@huggingface/transformers";
 
-// Use browser cache — model persists across sessions
-env.allowLocalModels = false;
-env.useBrowserCache = true;
+// Detect if running inside Capacitor (mobile app)
+const isCapacitor =
+  typeof window !== "undefined" &&
+  typeof (window as any).Capacitor !== "undefined";
+
+if (isCapacitor) {
+  // On Capacitor, disable browser cache and use local model path
+  // Model file should be placed in app assets or downloaded to device storage
+  env.allowLocalModels = true;
+  env.useBrowserCache  = false;
+} else {
+  // On web browser, use browser cache — model persists across sessions
+  env.allowLocalModels = false;
+  env.useBrowserCache  = true;
+}
 
 const MODEL_ID = "onnx-community/Qwen2.5-0.5B-Instruct";
 
 // Singleton pipeline — initialized once, reused for all calls
-let generator: any = null;
-let generatorLoading = false;
+let generator: any       = null;
+let generatorLoading     = false;
 
 export type DownloadProgressCallback = (percent: number) => void;
 
 /**
  * Check if the device can run AI inference.
- * Returns true if WebGPU or WASM is available.
- * WASM is always available in modern browsers so this is almost always true.
+ * WASM is universally available — this is almost always true.
  */
 export async function checkAIAvailable(): Promise<boolean> {
   if (typeof window === "undefined") return false;
-  // WASM is the universal fallback — available on all modern browsers
   return typeof WebAssembly !== "undefined";
 }
 
 /**
- * Check if the model is already cached in the browser.
+ * Check if the model is already cached.
+ * On web: checks browser cache.
+ * On Capacitor: always returns false (model readiness tracked in DB instead).
  */
 export async function isModelCached(): Promise<boolean> {
+  if (isCapacitor) return false;
   try {
     const cache = await caches.open("transformers-cache");
-    const keys = await cache.keys();
+    const keys  = await cache.keys();
     return keys.some((k) => k.url.includes("Qwen2.5-0.5B"));
   } catch {
-    // If cache API unavailable, assume not cached
     return false;
   }
 }
 
 /**
  * Initialize the pipeline with optional progress tracking.
- * Transformers.js handles the download and caching automatically.
+ * Tries WebGPU first for speed, falls back to WASM for compatibility.
  */
 async function getGenerator(
   onProgress?: DownloadProgressCallback
@@ -65,7 +75,6 @@ async function getGenerator(
   generatorLoading = true;
 
   try {
-    // Try WebGPU first for speed, fall back to WASM
     const device = (navigator as any).gpu ? "webgpu" : "wasm";
 
     generator = await pipeline("text-generation", MODEL_ID, {
@@ -88,9 +97,7 @@ async function getGenerator(
 }
 
 /**
- * Download the model with progress tracking.
- * Since Transformers.js downloads automatically during pipeline init,
- * this just initializes the pipeline and tracks progress.
+ * Download/initialize the model with progress tracking.
  */
 export async function downloadModel(
   onProgress: DownloadProgressCallback
@@ -104,7 +111,26 @@ export async function downloadModel(
 }
 
 /**
- * Generate a text response from the model.
+ * Strip ALL markdown and special formatting from AI output.
+ */
+function stripFormatting(text: string): string {
+  let clean = text
+    .replace(/\*{1,3}([^*]+)\*{1,3}/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^[\-\*\u2022]\s+/gm, "")
+    .replace(/^\(?\d+\)?\.?\s+/gm, "")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/_{1,2}([^_]+)_{1,2}/g, "$1")
+    .replace(/^[-*_]{3,}\s*$/gm, "")
+    .replace(/  +/g, " ")
+    .replace(/\n+/g, " ")
+    .trim();
+
+  return clean;
+}
+
+/**
+ * Generate a text response for a single focused section.
  * Returns null if the model is unavailable.
  */
 export async function generateInsight(prompt: string): Promise<string | null> {
@@ -116,25 +142,24 @@ export async function generateInsight(prompt: string): Promise<string | null> {
       {
         role: "system",
         content:
-          "You are an ABA therapy assistant. Respond only with the four labeled sections requested. No extra text.",
+          "You are an ABA therapy assistant. Write plain text only. No markdown, no asterisks, no dashes, no numbered lists, no bold, no special characters. Do not introduce your response. Start writing directly.",
       },
       { role: "user", content: prompt },
     ];
 
     const output = await gen(messages, {
-      max_new_tokens: 500,
-      temperature: 0.4,
-      top_k: 40,
-      do_sample: true,
+      max_new_tokens: 150,
+      temperature:    0.3,
+      top_k:          40,
+      do_sample:      true,
     });
 
-    // Extract assistant response text
-    const text =
+    const raw =
       output?.[0]?.generated_text?.at(-1)?.content?.trim() ??
       output?.[0]?.generated_text?.trim() ??
       null;
 
-    return text;
+    return raw ? stripFormatting(raw) : null;
   } catch {
     return null;
   }
