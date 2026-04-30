@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   base: "/AAC-App/",
   build: {
-    outDir: "docs",
+    outDir: "root",
   },
   assetsInclude: ["**/*.wasm"],
   optimizeDeps: {
