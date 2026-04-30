@@ -8,6 +8,7 @@ import { getDailyUsage } from "../db/sessionRepository";
 import "./StatsPage.css";
 import { useAIInsights } from "../hooks/useAIInsights";
 import { resetDB } from "../db/database";
+import CloudBackground from "../components/CloudBackground";
 
 const PROFILE_ID = "default_profile";
 
@@ -143,18 +144,17 @@ export default function StatsPage() {
     
     return (
     <div className="stats-page">
-      <div className="cloud cloud1" />
-      <div className="cloud cloud2" />
+      <CloudBackground mode="auto" count={2} />
 
       <div className="stats-shell">
 
         {/* Back */}
         <div className="stats-top-row">
           <button className="stats-back-btn" onClick={() => navigate("/home")}>
-            ← Back
+            ← Back To Home
           </button>
           <button className="stats-reset-btn" onClick={() => handleresetStats()}>
-            Reset Stats
+            Reset Statistics
           </button>
         </div>
 

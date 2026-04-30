@@ -17,6 +17,7 @@
   box-sizing: border-box;
   background: transparent;
   padding: 28px;
+  z-index: 2;
 }
 
 .home-card {
@@ -26,6 +27,7 @@
   align-items: center;
   justify-content: center;
   gap: 34px;
+  z-index: 2;
 }
 
 .home-header {
@@ -44,6 +46,7 @@
   -webkit-text-stroke: 8px #fff;
   paint-order: stroke fill;
   filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.16));
+  z-index: 2;
 }
 
 .home-kicker {
@@ -51,6 +54,7 @@
   font-weight: 600;
   line-height: 1;
   margin-bottom: 14px;
+  z-index: 2;
 }
 
 .home-time {
@@ -58,12 +62,14 @@
   font-weight: 700;
   line-height: 0.95;
   margin-bottom: 14px;
+  z-index: 2;
 }
 
 .home-date {
   font-size: clamp(2.4rem, 5vw, 4.4rem);
   font-weight: 600;
   line-height: 1;
+  z-index: 2;
 }
 
 .home-actions {
@@ -72,6 +78,7 @@
   flex-direction: column;
   align-items: center;
   gap: 24px;
+  z-index: 2;
 }
 
 .home-pill {
@@ -85,6 +92,7 @@
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
   transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
+  z-index: 2;
 }
 
 .home-pill:hover {

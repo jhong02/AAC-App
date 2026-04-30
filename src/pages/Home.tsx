@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./home.css";
+import CloudBackground from "../components/CloudBackground";
 
 import uiClickSound from "../assets/sounds/ui_click.wav";
 
@@ -84,6 +85,7 @@ export default function Home() {
   return (
     <section className="home">
       <div className="home-frame">
+        <CloudBackground mode="auto" count={4} />
         <div className="home-card">
           <header className="home-header">
             <p className="home-kicker">Welcome!</p>

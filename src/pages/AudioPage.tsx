@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioSettings } from "../hooks/useAudioSettings";
 import "./AudioPage.css";
+import CloudBackground from "../components/CloudBackground";
 
 import uiClickSound from "../assets/sounds/ui_click.wav";
 import gridSettingSaveSound from "../assets/sounds/gridsetting_save.wav";
@@ -185,6 +186,7 @@ export default function AudioPage() {
 
   return (
     <section className="audio-page">
+      <CloudBackground mode="auto" count={2} />
       <div className="audio-shell">
         <div className="audio-top-row">
           <button

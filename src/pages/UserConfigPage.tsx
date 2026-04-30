@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./UserConfigPage.css";
+import CloudBackground from "../components/CloudBackground";
 
 import uiClickSound from "../assets/sounds/ui_click.wav";
 
@@ -63,6 +64,7 @@ export default function UserConfigPage() {
 
   return (
     <section className="userConfig">
+      <CloudBackground mode="auto" count={3} />
       <div className="userConfig-frame">
         <div className="userConfig-card">
           <header className="userConfig-header">

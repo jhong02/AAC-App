@@ -56,12 +56,12 @@
 }
 
 .grid-settings-top-action.is-boards {
-  background: #f4c84a;
+  background: #f1edd6;
   color: #5a4700;
 }
 
 .grid-settings-top-action.is-default-board {
-  background: #9b6df3;
+  background: #858585;
   color: #ffffff;
 }
 
@@ -75,6 +75,12 @@
   box-shadow:
     0 0 0 4px rgba(244, 200, 74, 0.35),
     0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.grid-settings-top-action.is-pin {
+  /*background: #ffee00;*/
+  background: #c2e0ff;
+  color: #6b5700;
 }
 
 .grid-settings-top-action.is-back {
