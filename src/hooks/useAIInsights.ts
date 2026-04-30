@@ -27,8 +27,7 @@ import {
 
 const PROFILE_ID = "default_profile";
 
-// Average AAC user benchmark for sentence complexity comparison
-const AAC_AVG_SENTENCE_LENGTH = 2.5;
+
 
 export type Timeframe = "day" | "week" | "month" | "year" | "total";
 
