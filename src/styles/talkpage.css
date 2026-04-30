@@ -26,6 +26,34 @@
     sans-serif;
 }
 
+.talk-tile,
+.talk-control-btn,
+.talk-top-badge,
+.visual-mode-toggle__btn,
+.talk-custom-boards__item,
+.talk-filter__trigger,
+.talk-filter__menu-button,
+.talk-search__clear,
+.talk-sentence-bar {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+.talk-tile,
+.talk-control-btn,
+.talk-top-badge,
+.visual-mode-toggle__btn,
+.talk-custom-boards__item,
+.talk-filter__trigger,
+.talk-filter__menu-button,
+.talk-search__clear,
+.talk-sentence-bar {
+  will-change: transform, filter;
+}
+
 .talk-board-shell {
   width: min(1800px, calc(100vw - 24px));
   padding: 14px 18px 18px;
@@ -64,6 +92,16 @@
   box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
   cursor: pointer;
   font-family: inherit;
+  transition:
+    transform 80ms ease,
+    filter 80ms ease,
+    box-shadow 80ms ease;
+}
+
+.talk-top-badge:active {
+  transform: translateY(2px) scale(0.965);
+  filter: brightness(0.97);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.14);
 }
 
 .talk-top-badge--home {
@@ -163,10 +201,19 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  transition:
+    transform 80ms ease,
+    filter 80ms ease,
+    box-shadow 80ms ease;
 }
 
 .talk-custom-boards__item:hover {
   filter: brightness(0.98);
+}
+
+.talk-custom-boards__item:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
 }
 
 .talk-custom-boards__item + .talk-custom-boards__item {
@@ -221,6 +268,15 @@
   font-weight: 800;
   line-height: 1;
   cursor: pointer;
+  transition:
+    transform 80ms ease,
+    filter 80ms ease,
+    background 80ms ease;
+}
+
+.visual-mode-toggle__btn:active {
+  transform: scale(0.94);
+  filter: brightness(0.96);
 }
 
 .visual-mode-toggle__btn.is-active {
@@ -246,7 +302,10 @@
   font-weight: 700;
   text-align: left;
   cursor: pointer;
-  transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease,
+    filter 80ms ease;
 }
 
 .talk-sentence-bar:hover {
@@ -255,7 +314,7 @@
 
 .talk-sentence-bar:active,
 .talk-sentence-bar.is-empty:active {
-  transform: translateY(2px) scale(0.995);
+  transform: translateY(2px) scale(0.985);
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 
@@ -315,9 +374,16 @@
   cursor: pointer;
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.12);
   transition:
-    filter 0.16s ease,
+    filter 80ms ease,
     border-radius 0.16s ease,
-    box-shadow 0.16s ease;
+    box-shadow 80ms ease,
+    transform 80ms ease;
+}
+
+.talk-filter__trigger:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.97);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);
 }
 
 .talk-filter__trigger:hover {
@@ -381,7 +447,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  transition: filter 0.14s ease, background 0.14s ease;
+  transition:
+    transform 80ms ease,
+    filter 80ms ease,
+    background 80ms ease;
+}
+
+.talk-filter__menu-button:active {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
 }
 
 .talk-filter__menu-button:hover,
@@ -524,9 +598,9 @@
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
   transition:
-    transform 0.12s ease,
-    filter 0.12s ease,
-    box-shadow 0.12s ease;
+    transform 80ms ease,
+    filter 80ms ease,
+    box-shadow 80ms ease;
 }
 
 .talk-search__clear:hover {
@@ -591,7 +665,11 @@
   background: var(--tile-bg);
   border: 1.5px solid var(--tile-border);
   cursor: pointer;
-  transition: transform 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+  transition:
+    transform 80ms ease,
+    background 80ms ease,
+    border-color 80ms ease,
+    filter 80ms ease;
   font-family: inherit;
 }
 
@@ -601,7 +679,7 @@
 
 .talk-tile:active,
 .talk-tile.is-pressed {
-  transform: scale(0.975);
+  transform: translateY(2px) scale(0.96);
   background: var(--tile-active);
 }
 
@@ -709,7 +787,9 @@
   border: none;
   background: transparent;
   cursor: pointer;
-  transition: transform 0.14s ease, filter 0.14s ease;
+  transition:
+    transform 80ms ease,
+    filter 80ms ease;
   font-family: inherit;
 }
 
@@ -744,7 +824,8 @@
 
 .talk-control-btn:active,
 .talk-control-btn.is-pressed {
-  transform: translateY(2px) scale(0.985);
+  transform: translateY(2px) scale(0.965);
+  filter: brightness(0.96);
 }
 
 .talk-control-btn__icon,
@@ -971,6 +1052,18 @@
 
 .talk-page.visual-colorblind .talk-search__input:focus {
   border-color: #005f99;
+}
+
+@media (hover: none) {
+  .talk-tile:hover,
+  .talk-tile.is-word:hover,
+  .talk-control-btn:hover,
+  .talk-top-badge:hover,
+  .talk-filter__trigger:hover,
+  .talk-custom-boards__item:hover,
+  .visual-mode-toggle__btn:hover {
+    filter: none;
+  }
 }
 
 @media (max-width: 1400px) {
