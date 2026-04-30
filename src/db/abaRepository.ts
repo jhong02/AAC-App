@@ -10,7 +10,7 @@
  */
 
 import type { Database } from "sql.js";
-import type { ABATokenEvent, Profile, Setting } from "./schema";
+import type { ABATokenEvent, Profile } from "./schema";
 import { schedulePersist, uuid } from "./database";
 
 // ABA Token Events

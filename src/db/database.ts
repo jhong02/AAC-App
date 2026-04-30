@@ -72,7 +72,7 @@ async function initDB(): Promise<Database> {
   // for production, copy it into /public and point locateFile there.
   const initSqlJs = await getSqlJs();
   _SQL = await initSqlJs({
-    locateFile: (file: string) =>
+    locateFile: (_file: string) =>
       `/sql-wasm.wasm`,
   });
 
