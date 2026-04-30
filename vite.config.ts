@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   base: "/AAC-App/",
+  build: {
+    outDir: "docs",
+  },
   assetsInclude: ["**/*.wasm"],
   optimizeDeps: {
     exclude: ["sql.js"],
