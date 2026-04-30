@@ -7,6 +7,7 @@ import { getTopWordsSince } from "../db/sessionRepository";
 import { getDailyUsage } from "../db/sessionRepository";
 import "./StatsPage.css";
 import { useAIInsights } from "../hooks/useAIInsights";
+import { resetDB } from "../db/database";
 
 const PROFILE_ID = "default_profile";
 
@@ -15,6 +16,8 @@ export default function StatsPage() {
   const { db, ready } = useDatabase();
   const [stats, setStats] = useState<any>(null);
   const [timeframe, setTimeframe] = useState<"day" | "week" | "month" | "year" | "total">("day");
+
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const { insight, loading, modelStatus, downloadProgress, daysAgo, generate, startDownload } = useAIInsights(timeframe);
 
@@ -43,21 +46,28 @@ export default function StatsPage() {
     if (seconds > 0 || parts.length === 0) parts.push(`${seconds} second${seconds > 1 ? "s" : ""}`);
 
     return parts.join(" ");
-}
+  }
+
+  function handleresetStats() {
+          if (!db) return;
+
+          setShowConfirm(true);
+  }
+
 
     useEffect(() => {
     if (!ready || !db) return;
 
-    function getSinceTimeframe(tf: string) {
-              const now = Date.now();
-      switch (tf) {
-        case "day":   return now - 1   * 24 * 60 * 60 * 1000;
-        case "week":  return now - 7   * 24 * 60 * 60 * 1000;
-        case "month": return now - 30  * 24 * 60 * 60 * 1000;
-        case "year":  return now - 365 * 24 * 60 * 60 * 1000;
+      function getSinceTimeframe(tf: string) {
+        const now = Date.now();
+        switch (tf) {
+          case "day":   return now - 1   * 24 * 60 * 60 * 1000;
+          case "week":  return now - 7   * 24 * 60 * 60 * 1000;
+          case "month": return now - 30  * 24 * 60 * 60 * 1000;
+          case "year":  return now - 365 * 24 * 60 * 60 * 1000;
         default:      return 0;
-              } 
-            }
+        } 
+      }
 
         try {
 
@@ -95,7 +105,7 @@ export default function StatsPage() {
 
             // 4. Get usage data for graphing
 
-            //fallback if call fails
+            // fallback if call fails
             const usageDays =
               timeframe === "day"   ? 1   :
               timeframe === "week"  ? 7   :
@@ -140,8 +150,11 @@ export default function StatsPage() {
 
         {/* Back */}
         <div className="stats-top-row">
-          <button className="stats-back-badge" onClick={() => navigate("/home")}>
+          <button className="stats-back-btn" onClick={() => navigate("/home")}>
             ← Back
+          </button>
+          <button className="stats-reset-btn" onClick={() => handleresetStats()}>
+            Reset Stats
           </button>
         </div>
 
@@ -623,6 +636,44 @@ export default function StatsPage() {
       </div>
 
      </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-box">
+            <h3>Reset Stats?</h3>
+            <p>This will permanently delete all your previous data.</p>
+
+            <div className="modal-actions">
+              <button
+                className="modal-btn modal-cancel-btn"
+                onClick={() => setShowConfirm(false)}
+              >
+                Cancel
+              </button>
+
+              <button
+                className="modal-btn modal-confirm-btn"
+                onClick={() => {
+                  resetDB();
+                  
+                  setStats({
+                    name: "Default User",
+                    sessionTime: 0,
+                    topWords: [],
+                    categories: [],
+                    dailyUsage: [],
+                  });
+                  setShowConfirm(false);
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
