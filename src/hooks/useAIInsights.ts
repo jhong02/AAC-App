@@ -2,8 +2,11 @@
  * useAIInsights.ts
  *
  * Manages AI summary generation for StatsPage.
- * - Handles model initialization, generation, storage, and staleness tracking
- * - Persists model loaded state in database so download prompt does not reappear
+ * Four focused 1-3 sentence sections:
+ * - Summary: interprets top 3 stats for the timeframe
+ * - Growth: compares current vs previous snapshot
+ * - Word Suggestions: category to expand + unused words to remove
+ * - Lag Time: hesitation rate vs previous snapshot
  */
 
 import { useState, useEffect } from "react";
@@ -13,6 +16,7 @@ import {
   getCategoryUsageSince,
   getInterTapStats,
   getSentenceComplexity,
+  getUnusedWords,
 } from "../db/sessionRepository";
 import { getSetting, setSetting } from "../db/abaRepository";
 import {
@@ -23,14 +27,26 @@ import {
 
 const PROFILE_ID = "default_profile";
 
+// Average AAC user benchmark for sentence complexity comparison
+const AAC_AVG_SENTENCE_LENGTH = 2.5;
+
 export type Timeframe = "day" | "week" | "month" | "year" | "total";
 
 export interface AIInsight {
-  summary:            string;
-  sentenceComplexity: string;
-  lagTime:            string;
-  wordSuggestions:    string;
-  generatedAt:        number;
+  summary:         string;
+  growth:          string;
+  wordSuggestions: string;
+  lagTime:         string;
+  generatedAt:     number;
+}
+
+// Snapshot saved alongside each summary for future comparison
+interface StatsSnapshot {
+  totalWords:        number;
+  avgSentenceLength: number;
+  hesitationRate:    number;
+  topCategory:       string;
+  generatedAt:       number;
 }
 
 export type ModelStatus =
@@ -66,109 +82,98 @@ function storageKey(timeframe: Timeframe): string {
   return `ai_insight_${timeframe}`;
 }
 
+function snapshotKey(timeframe: Timeframe): string {
+  return `ai_snapshot_${timeframe}`;
+}
+
 function daysAgoFromTimestamp(ts: number): number {
   return Math.floor((Date.now() - ts) / (24 * 60 * 60 * 1000));
 }
 
-// ─── Data context builder ─────────────────────────────────────────
+function timeLabel(timeframe: Timeframe): string {
+  switch (timeframe) {
+    case "day":   return "the past 24 hours";
+    case "week":  return "the past 7 days";
+    case "month": return "the past 30 days";
+    case "year":  return "the past year";
+    case "total": return "all time";
+  }
+}
 
-function buildDataContext(
-  timeframe: Timeframe,
+// ─── Prompts ───────────────────────────────────────────────────────
+
+function summaryPrompt(
+  period: string,
+  totalWords: number,
   topWords: any[],
-  categories: any[],
-  profileStats: any,
-  interTap: any,
-  sentenceStats: any
+  topCategory: string,
+  topCategoryPct: number
 ): string {
-  const timeLabel =
-    timeframe === "day"   ? "the past 24 hours" :
-    timeframe === "week"  ? "the past 7 days"   :
-    timeframe === "month" ? "the past 30 days"  :
-    timeframe === "year"  ? "the past year"      :
-    "all time";
+  const top3 = topWords.slice(0, 3)
+    .map((w: any) => `${w.word} (${w.count} taps)`)
+    .join(", ");
 
-  const totalWords = profileStats?.total_words ?? 0;
+  return `Write 1 to 3 plain sentences summarizing AAC communication for ${period}. State the total words tapped, the top 3 words used, and note that ${topCategory} was the dominant category at ${topCategoryPct}%. Briefly interpret what this suggests about communication patterns. No markdown. No lists. No introduction.
 
-  const top3 = topWords.slice(0, 3);
-  const wordsText = top3.length > 0
-    ? top3.map((w: any) => {
-        const pct = totalWords > 0 ? Math.round((w.count / totalWords) * 100) : 0;
-        return `${w.word}: ${w.count} taps (${pct}%, category: ${w.category})`;
-      }).join(", ")
-    : "no word data";
-
-  const totalCatTaps = categories.reduce((s: number, c: any) => s + c.count, 0);
-  const catsText = categories.length > 0
-    ? categories.map((c: any) => {
-        const pct = totalCatTaps > 0 ? Math.round((c.count / totalCatTaps) * 100) : 0;
-        return `${c.category}: ${pct}%`;
-      }).join(", ")
-    : "no category data";
-
-  const lagText = interTap
-    ? `${(interTap.averageMs / 1000).toFixed(1)}s average between taps, ${interTap.hesitationRate}% hesitation rate`
-    : "no timing data";
-
-  const sentText = sentenceStats
-    ? `${sentenceStats.avgLength} words average, ${sentenceStats.maxLength} words longest, ${sentenceStats.totalSentences} total sentences`
-    : "no sentence data";
-
-  return `Period: ${timeLabel}
-Top 3 words: ${wordsText}
-Categories: ${catsText}
-Total words: ${totalWords}, Sessions: ${profileStats?.total_sessions ?? 0}, Avg per session: ${profileStats?.avg_words_per_session ?? 0}
-Sentences: ${sentText}
-Tap timing: ${lagText}`;
+Data: ${totalWords} total words. Top words: ${top3}. Dominant category: ${topCategory} (${topCategoryPct}%).`;
 }
 
-// ─── Individual section prompts ────────────────────────────────────
+function growthPrompt(
+  period: string,
+  current: StatsSnapshot,
+  previous: StatsSnapshot | null
+): string {
+  if (!previous) {
+    return `Write 1 plain sentence saying there is not enough history yet to show growth for ${period}.`;
+  }
 
-function summaryPrompt(data: string, timeLabel: string): string {
-  return `You are an ABA therapy assistant. Use ONLY the numbers in the data below. Do not invent data. Do not reference any time period other than ${timeLabel}. Do not introduce your response. Start writing directly with the first sentence of content.
-Write 3 sentences about ${timeLabel} only.
-(1) State the key stats including top words and their percentages.
-(2) Give one clinical insight about what the patterns indicate.
-(3) Give one specific suggestion for the caregiver.
+  const wordDiff = current.totalWords - previous.totalWords;
+  const wordDir  = wordDiff >= 0 ? "up" : "down";
+  const lagDiff  = current.hesitationRate - previous.hesitationRate;
+  const lagDir   = lagDiff <= 0 ? "improved" : "increased";
 
-
-Data for ${timeLabel}:
-${data}`;
+  return `Write 1 to 3 plain sentences comparing communication for ${period} to the previous summary. Total words are ${wordDir} by ${Math.abs(wordDiff)}. Hesitation rate has ${lagDir} by ${Math.abs(lagDiff)}%. Sentence length went from ${previous.avgSentenceLength} to ${current.avgSentenceLength} words. State only what changed, no interpretation. No markdown. No lists. No introduction.`;
 }
 
-function complexityPrompt(data: string, timeLabel: string): string {
-  return `You are an ABA therapy assistant. Use ONLY the numbers in the data below. Do not invent data. Do not reference any time period other than ${timeLabel}. Do not introduce your response. Start writing directly with the first sentence of content.
-Write 3  sentences about sentence complexity for ${timeLabel} only.
-(1) State the sentence length stats with numbers from the data.
-(2) Give one insight about what this sentence length indicates developmentally.
-(3) Give one specific suggestion for encouraging longer sentences.
+// Word suggestions generated directly in code — no AI needed
+function generateWordSuggestionsText(
+  categories: any[],
+  unusedWords: string[],
+  totalCatTaps: number
+): string {
+  if (categories.length === 0) return "No category data available.";
 
+  const sorted    = [...categories].sort((a, b) => a.count - b.count);
+  const smallest  = sorted[0];
+  const smallPct  = totalCatTaps > 0
+    ? Math.round((smallest.count / totalCatTaps) * 100) : 0;
 
-Data for ${timeLabel}:
-${data}`;
+  let text = `The ${smallest.category} category is the least used at ${smallPct}% of taps. Consider adding more words to this category.`;
+
+  if (unusedWords.length > 0) {
+    text += ` The following words have not been tapped in 30 days and may be worth removing: ${unusedWords.join(", ")}.`;
+  }
+
+  return text;
 }
 
-function lagTimePrompt(data: string, timeLabel: string): string {
-  return `You are an ABA therapy assistant. Use ONLY the numbers in the data below. Do not invent data. Do not reference any time period other than ${timeLabel}. Do not introduce your response. Start writing directly with the first sentence of content.
-Write 3 sentences about tap timing for ${timeLabel} only.
-(1) State the hesitation rate and average tap timing using the exact numbers from the data.
-(2) Give one insight about what the hesitation rate may indicate.
-(3) Give one specific suggestion related to board layout or practice.
+function lagTimePrompt(
+  period: string,
+  currentRate: number,
+  currentAvgMs: number,
+  previousRate: number | null
+): string {
+  if (previousRate === null) {
+    return `Write 1 plain sentence saying there is not enough history yet to compare lag time for ${period}. State the current hesitation rate is ${currentRate}% with an average of ${(currentAvgMs / 1000).toFixed(1)} seconds between taps.`;
+  }
 
+  const diff = currentRate - previousRate;
+  const dir  = diff <= 0 ? "down" : "up";
 
-Data for ${timeLabel}:
-${data}`;
+  return `Write 1 to 3 plain sentences about tap timing for ${period}. The hesitation rate is ${dir} ${Math.abs(diff)}% from last time, now at ${currentRate}%. Average time between taps is ${(currentAvgMs / 1000).toFixed(1)} seconds. If hesitation is high suggest the board layout may need review. No markdown. No lists. No introduction.`;
 }
 
-function wordSuggestionsPrompt(data: string, timeLabel: string): string {
-  return `You are an ABA therapy assistant. Use ONLY the words listed in the data below. Do not invent words or patterns. Do not reference any time period other than ${timeLabel}. Do not introduce your response. Start writing directly with the first sentence of content.
-Write 3 sentences about word suggestions for ${timeLabel} only.
-(1) Identify the most overused word from the data and its exact percentage.
-(2) Suggest a more specific or sophisticated single word to replace or supplement it if possible.
-
-
-Data for ${timeLabel}:
-${data}`;
-}
+// ─── Hook ──────────────────────────────────────────────────────────
 
 export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
   const { db, ready } = useDatabase();
@@ -178,7 +183,6 @@ export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
   const [modelStatus,      setModelStatus]      = useState<ModelStatus>("checking");
   const [downloadProgress, setDownloadProgress] = useState(0);
 
-  // Check availability and whether model was previously loaded
   useEffect(() => {
     async function check() {
       const ok = await checkAIAvailable();
@@ -199,7 +203,6 @@ export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
     check();
   }, [db, ready]);
 
-  // Load stored insight when timeframe changes
   useEffect(() => {
     if (!ready || !db) return;
     try {
@@ -227,62 +230,63 @@ export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
     setLoading(true);
 
     try {
-      const since = getSinceMs(timeframe);
-      const topWords      = getTopWordsSince(db, PROFILE_ID, since, 10);
-      const categories    = getCategoryUsageSince(db, PROFILE_ID, since, 5);
-      const interTap      = getInterTapStats(db, PROFILE_ID, since);
-      const sentenceStats = getSentenceComplexity(db, PROFILE_ID, since);
+      const since      = getSinceMs(timeframe);
+      const label      = timeLabel(timeframe);
+      const topWords   = getTopWordsSince(db, PROFILE_ID, since, 10);
+      const categories = getCategoryUsageSince(db, PROFILE_ID, since, 5);
+      const interTap   = getInterTapStats(db, PROFILE_ID, since);
+      const sentStats  = getSentenceComplexity(db, PROFILE_ID, since);
+      const unusedWords = getUnusedWords(db, PROFILE_ID, 30);
 
       const sessions = db.exec(
         `SELECT COUNT(*) FROM sessions WHERE profile_id = ? AND started_at >= ?;`,
         [PROFILE_ID, since]
       );
-      const totalWordsInPeriod    = topWords.reduce((sum: number, w: any) => sum + w.count, 0);
-      const totalSessionsInPeriod = (sessions[0]?.values?.[0]?.[0] as number) ?? 0;
-      const avgWordsPerSession    = totalSessionsInPeriod > 0
-        ? Math.round(totalWordsInPeriod / totalSessionsInPeriod) : 0;
+      const totalWords        = topWords.reduce((s: number, w: any) => s + w.count, 0);
+      const totalSessions     = (sessions[0]?.values?.[0]?.[0] as number) ?? 0;
+      const totalCatTaps      = categories.reduce((s: number, c: any) => s + c.count, 0);
+      const topCat            = categories[0];
+      const topCatPct         = topCat && totalCatTaps > 0
+        ? Math.round((topCat.count / totalCatTaps) * 100) : 0;
+      const avgSentLen        = sentStats?.avgLength ?? 0;
+      const hesitationRate    = interTap?.hesitationRate ?? 0;
+      const avgMs             = interTap?.averageMs ?? 0;
 
-      const profileStats = {
-        total_words:           totalWordsInPeriod,
-        total_sessions:        totalSessionsInPeriod,
-        avg_words_per_session: avgWordsPerSession,
+      // Load previous snapshot for comparison
+      const prevSnapshot = getSetting<StatsSnapshot>(
+        db, snapshotKey(timeframe), PROFILE_ID
+      ) ?? null;
+
+      // Build current snapshot
+      const currentSnapshot: StatsSnapshot = {
+        totalWords,
+        avgSentenceLength: avgSentLen,
+        hesitationRate,
+        topCategory:       topCat?.category ?? "",
+        generatedAt:       Date.now(),
       };
 
-      // Build shared data context
-      const timeLabel =
-        timeframe === "day"   ? "the past 24 hours" :
-        timeframe === "week"  ? "the past 7 days"   :
-        timeframe === "month" ? "the past 30 days"  :
-        timeframe === "year"  ? "the past year"      :
-        "all time";
+      // Word suggestions generated directly — no AI needed
+      const wordSuggestions = generateWordSuggestionsText(categories, unusedWords, totalCatTaps);
 
-      const dataCtx = buildDataContext(
-        timeframe, topWords, categories, profileStats, interTap, sentenceStats
-      );
-
-      // Four separate focused calls — one per section, each with timeLabel
-      const [summary, sentenceComplexity, lagTime, wordSuggestions] = await Promise.all([
-        generateInsight(summaryPrompt(dataCtx, timeLabel)),
-        generateInsight(complexityPrompt(dataCtx, timeLabel)),
-        generateInsight(lagTimePrompt(dataCtx, timeLabel)),
-        generateInsight(wordSuggestionsPrompt(dataCtx, timeLabel)),
+      // Three AI calls in parallel for the remaining sections
+      const [summary, growth, lagTime] = await Promise.all([
+        generateInsight(summaryPrompt(label, totalWords, topWords, topCat?.category ?? "unknown", topCatPct)),
+        generateInsight(growthPrompt(label, currentSnapshot, prevSnapshot)),
+        generateInsight(lagTimePrompt(label, hesitationRate, avgMs, prevSnapshot?.hesitationRate ?? null)),
       ]);
 
-      if (!summary && !sentenceComplexity && !lagTime && !wordSuggestions) {
-        setModelStatus("error");
-        setLoading(false);
-        return;
-      }
-
       const parsed: AIInsight = {
-        summary:            summary            ?? "No data available.",
-        sentenceComplexity: sentenceComplexity ?? "No data available.",
-        lagTime:            lagTime            ?? "No data available.",
-        wordSuggestions:    wordSuggestions    ?? "No data available.",
-        generatedAt:        Date.now(),
+        summary:         summary         ?? "No data available.",
+        growth:          growth          ?? "Not enough history yet to show growth.",
+        wordSuggestions: wordSuggestions ?? "No data available.",
+        lagTime:         lagTime         ?? "No data available.",
+        generatedAt:     Date.now(),
       };
 
+      // Save insight and snapshot
       setSetting(db, storageKey(timeframe), parsed, PROFILE_ID);
+      setSetting(db, snapshotKey(timeframe), currentSnapshot, PROFILE_ID);
       setInsight(parsed);
     } catch {
       setModelStatus("error");

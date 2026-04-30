@@ -460,3 +460,26 @@ export function getSentenceComplexity(
     totalSentences: lengths.length,
   };
 }
+// ─── Unused words (0 taps in last 30 days) ────────────────────────
+
+export function getUnusedWords(
+  db: Database,
+  profileId: string,
+  dayThreshold = 30
+): string[] {
+  const cutoff = Date.now() - dayThreshold * 24 * 60 * 60 * 1000;
+
+  // Get words that have been tapped at least once ever but not in last 30 days
+  const result = db.exec(
+    `SELECT DISTINCT word FROM word_events
+     WHERE profile_id = ?
+     AND word NOT IN (
+       SELECT DISTINCT word FROM word_events
+       WHERE profile_id = ? AND timestamp >= ?
+     )
+     LIMIT 5;`,
+    [profileId, profileId, cutoff]
+  );
+
+  return result[0]?.values.map((r) => r[0] as string) ?? [];
+}
