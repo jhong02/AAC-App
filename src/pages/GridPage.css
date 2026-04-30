@@ -2,7 +2,11 @@
   min-height: 100vh;
   padding: 24px;
   box-sizing: border-box;
-  background: #bde8a8;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    #bde8a8;
+  background-size: 32px 32px, 32px 32px, auto;
   font-family: "Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -52,12 +56,12 @@
 }
 
 .grid-settings-top-action.is-boards {
-  background: #f4c84a;
+  background: #f1edd6;
   color: #5a4700;
 }
 
 .grid-settings-top-action.is-default-board {
-  background: #9b6df3;
+  background: #858585;
   color: #ffffff;
 }
 
@@ -71,6 +75,12 @@
   box-shadow:
     0 0 0 4px rgba(244, 200, 74, 0.35),
     0 4px 10px rgba(0, 0, 0, 0.16);
+}
+
+.grid-settings-top-action.is-pin {
+  /*background: #ffee00;*/
+  background: #c2e0ff;
+  color: #6b5700;
 }
 
 .grid-settings-top-action.is-back {

@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import "./UserConfigPage.css";
+import CloudBackground from "../components/CloudBackground";
 
 export default function UserConfigPage() {
   const navigate = useNavigate();
 
   return (
     <section className="userConfig">
+      <CloudBackground mode="auto" count={3} />
       <div className="userConfig-frame">
         <div className="userConfig-card">
           <header className="userConfig-header">

@@ -17,6 +17,7 @@
   box-sizing: border-box;
   background: transparent;
   padding: 28px;
+  z-index: 2;
 }
 
 .userConfig-card {
@@ -55,6 +56,7 @@
   align-items: center;
   gap: 26px;
   flex-wrap: wrap;
+  z-index: 2;
 }
 
 .userConfig-pill {
@@ -117,14 +119,15 @@
   border: 4px solid #fff;
   border-radius: 999px;
   padding: 14px 26px;
-  background: #9fe6a6;
-  color: #4a5c4a;
+  background: #49A8F0;
+  color: #f3f3f3;
   font-family: inherit;
   font-size: clamp(1.05rem, 1.8vw, 1.5rem);
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.16);
   transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
+  z-index: 2;
 }
 
 .userConfig-back:hover {

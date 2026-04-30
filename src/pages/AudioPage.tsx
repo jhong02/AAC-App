@@ -2,6 +2,7 @@ import { useEffect, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAudioSettings } from "../hooks/useAudioSettings";
 import "./AudioPage.css";
+import CloudBackground from "../components/CloudBackground";
 
 export default function AudioPage() {
   const navigate = useNavigate();
@@ -47,6 +48,7 @@ export default function AudioPage() {
 
   return (
     <section className="audio-page">
+      <CloudBackground mode="auto" count={2} />
       <div className="audio-shell">
         <div className="audio-top-row">
           <button

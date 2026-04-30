@@ -77,25 +77,6 @@ body{
   transform: translateY(1px);
 }
 
-.cloud {
-  position: fixed;
-
-  width: 120px;
-  height: 60px;
-  background: white;
-  border-radius: 50px;
-
-  box-shadow:
-    30px 0px 0px 0px white,
-    60px 10px 0px 0px white,
-    20px -10px 0px 0px white;
-
-  opacity: 0.9;
-
-  position: absolute;
-  z-index: 0;
-}
-
 .text-outline {
   text-shadow:
     1px  1px 0 white,
