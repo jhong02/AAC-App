@@ -1345,35 +1345,35 @@
 
   .talk-grid.is-default {
     --tile-min-height: 0;
-    --tile-padding: 8px 6px;
-    --tile-gap: 7px;
-    --tile-icon-min-height: 32px;
-    --tile-icon-size: clamp(34px, 4vw, 58px);
-    --tile-nav-icon-size: clamp(44px, 5vw, 76px);
-    --tile-label-size: clamp(0.96rem, 1.18vw, 1.18rem);
-    --tile-nav-label-size: clamp(0.92rem, 1.08vw, 1.04rem);
+    --tile-padding: 10px 8px;
+    --tile-gap: 8px;
+    --tile-icon-min-height: 44px;
+    --tile-icon-size: clamp(48px, 5.1vw, 74px);
+    --tile-nav-icon-size: clamp(58px, 6vw, 92px);
+    --tile-label-size: clamp(1.08rem, 1.32vw, 1.38rem);
+    --tile-nav-label-size: clamp(1rem, 1.2vw, 1.24rem);
   }
 
   .talk-grid.is-medium {
     --tile-min-height: 0;
-    --tile-padding: 5px 4px;
-    --tile-gap: 4px;
-    --tile-icon-min-height: 20px;
-    --tile-icon-size: clamp(24px, 2.5vw, 38px);
-    --tile-nav-icon-size: clamp(32px, 3vw, 50px);
-    --tile-label-size: clamp(0.82rem, 0.98vw, 0.98rem);
-    --tile-nav-label-size: clamp(0.8rem, 0.94vw, 0.92rem);
+    --tile-padding: 6px 5px;
+    --tile-gap: 5px;
+    --tile-icon-min-height: 26px;
+    --tile-icon-size: clamp(30px, 3vw, 46px);
+    --tile-nav-icon-size: clamp(38px, 3.7vw, 58px);
+    --tile-label-size: clamp(0.9rem, 1.04vw, 1.06rem);
+    --tile-nav-label-size: clamp(0.86rem, 1vw, 1rem);
   }
 
   .talk-grid.is-large {
     --tile-min-height: 0;
-    --tile-padding: 3px 2px;
-    --tile-gap: 2px;
-    --tile-icon-min-height: 12px;
-    --tile-icon-size: clamp(14px, 1.45vw, 24px);
-    --tile-nav-icon-size: clamp(18px, 2vw, 30px);
-    --tile-label-size: clamp(0.54rem, 0.66vw, 0.74rem);
-    --tile-nav-label-size: clamp(0.52rem, 0.64vw, 0.7rem);
+    --tile-padding: 4px 3px;
+    --tile-gap: 3px;
+    --tile-icon-min-height: 16px;
+    --tile-icon-size: clamp(18px, 1.8vw, 30px);
+    --tile-nav-icon-size: clamp(24px, 2.4vw, 38px);
+    --tile-label-size: clamp(0.62rem, 0.74vw, 0.84rem);
+    --tile-nav-label-size: clamp(0.6rem, 0.72vw, 0.8rem);
   }
 
   .talk-tile {
@@ -1382,7 +1382,7 @@
 
   .talk-tile__icon {
     min-height: 0;
-    height: clamp(22px, 4.2vh, 52px);
+    height: clamp(34px, 5.8vh, 76px);
     margin-bottom: 0;
   }
 
