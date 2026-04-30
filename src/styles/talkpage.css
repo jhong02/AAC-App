@@ -1658,3 +1658,54 @@
     height: 6px;
   }
 }
+
+/* Larger iPad / tablet landscape tile icons + labels */
+@media screen and (orientation: landscape) and (min-width: 768px) and (max-width: 1400px) and (min-height: 650px) and (max-height: 1100px) {
+  .talk-grid.is-default {
+    --tile-padding: 8px 6px;
+    --tile-gap: 5px;
+    --tile-icon-min-height: 70px;
+    --tile-icon-size: clamp(76px, 6.2vw, 100px);
+    --tile-nav-icon-size: clamp(86px, 7vw, 112px);
+    --tile-label-size: clamp(1.22rem, 1.55vw, 1.7rem);
+    --tile-nav-label-size: clamp(1.12rem, 1.35vw, 1.5rem);
+  }
+
+  .talk-grid.is-medium {
+    --tile-padding: 6px 5px;
+    --tile-gap: 4px;
+    --tile-icon-min-height: 58px;
+    --tile-icon-size: clamp(58px, 5.2vw, 78px);
+    --tile-nav-icon-size: clamp(72px, 6vw, 94px);
+    --tile-label-size: clamp(1.05rem, 1.28vw, 1.34rem);
+    --tile-nav-label-size: clamp(1rem, 1.2vw, 1.24rem);
+  }
+
+  .talk-grid.is-large {
+    --tile-padding: 3px 2px;
+    --tile-gap: 2px;
+    --tile-icon-min-height: 24px;
+    --tile-icon-size: clamp(26px, 2.4vw, 38px);
+    --tile-nav-icon-size: clamp(34px, 3vw, 48px);
+    --tile-label-size: clamp(0.72rem, 0.86vw, 0.92rem);
+    --tile-nav-label-size: clamp(0.7rem, 0.82vw, 0.88rem);
+  }
+
+  .talk-tile__icon {
+    min-height: var(--tile-icon-min-height);
+    height: var(--tile-icon-min-height);
+  }
+
+  .talk-tile__icon-img {
+    width: var(--tile-icon-size);
+    height: var(--tile-icon-size);
+    max-width: 92%;
+    max-height: 92%;
+    object-fit: contain;
+  }
+
+  .talk-tile__label {
+    font-weight: 800;
+    line-height: 1;
+  }
+}
