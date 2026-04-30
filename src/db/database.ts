@@ -14,9 +14,12 @@ import type { Database, SqlJsStatic } from "sql.js";
 async function getSqlJs(): Promise<any> {
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
-    script.src = "/node_modules/sql.js/dist/sql-wasm-browser.js";
+
+    script.src = `${import.meta.env.BASE_URL}sql/sql-wasm.js`;
+
     script.onload = () => resolve((window as any).initSqlJs);
     script.onerror = reject;
+
     document.head.appendChild(script);
   });
 }
@@ -72,8 +75,8 @@ async function initDB(): Promise<Database> {
   // for production, copy it into /public and point locateFile there.
   const initSqlJs = await getSqlJs();
   _SQL = await initSqlJs({
-    locateFile: (_file: string) =>
-      `/sql-wasm.wasm`,
+locateFile: (file: string) =>
+  `${import.meta.env.BASE_URL}sql/${file}`,
   });
 
   if (!_SQL) throw new Error("[DB] Failed to load sql.js");
@@ -83,7 +86,6 @@ async function initDB(): Promise<Database> {
   _db = existing ? new _SQL.Database(existing) : new _SQL.Database();
  
   // Enable WAL mode for better concurrent write performance
-  _db.run("PRAGMA journal_mode=WAL;");
   _db.run("PRAGMA foreign_keys=ON;");
  
   // Apply any pending migrations
