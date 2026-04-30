@@ -5,6 +5,7 @@ import {
   useRef,
   type CSSProperties,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 import { useNavigate } from "react-router-dom";
@@ -14,6 +15,7 @@ import {
   speakTileWordInstant,
   syncRuntimeTTSSettingsFromDB,
   primeTTSVoices,
+  unlockTTSForUserGesture,
 } from "../hooks/useTTSSettings";
 import { useDatabase } from "../hooks/useDatabase";
 import { getCategories } from "../db/wordRepository";
@@ -486,12 +488,11 @@ const TalkPage = () => {
   const categoryTriggerRef = useRef<HTMLButtonElement | null>(null);
   const customBoardsRef = useRef<HTMLDivElement | null>(null);
   const soundBankRef = useRef<Record<SoundKey, HTMLAudioElement> | null>(null);
-  const recentPointerActionRef = useRef<{ id: string; time: number } | null>(null);
+  const lastPointerActionRef = useRef<{ id: string; time: number } | null>(null);
   const voicesPrimedRef = useRef(false);
-  const homeNavigationTimerRef = useRef<number | null>(null);
 
   const [showPinOverlay, setShowPinOverlay] = useState(false);
-  const [showFirstLoad,  setShowFirstLoad]  = useState(false);
+  const [showFirstLoad, setShowFirstLoad] = useState(false);
 
   const displayedSentence = sentenceWords.join(" ");
 
@@ -577,14 +578,6 @@ const TalkPage = () => {
   }, [db]);
 
   useEffect(() => {
-    return () => {
-      if (homeNavigationTimerRef.current !== null) {
-        window.clearTimeout(homeNavigationTimerRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
     const handleOutsideClick = (event: MouseEvent) => {
       const target = event.target as Node;
 
@@ -617,14 +610,14 @@ const TalkPage = () => {
   };
 
   const rememberPointerAction = (id: string) => {
-    recentPointerActionRef.current = {
+    lastPointerActionRef.current = {
       id,
       time: window.performance.now(),
     };
   };
 
   const shouldSkipSyntheticClick = (id: string) => {
-    const lastPointerAction = recentPointerActionRef.current;
+    const lastPointerAction = lastPointerActionRef.current;
     const now = window.performance.now();
 
     return Boolean(
@@ -645,7 +638,13 @@ const TalkPage = () => {
     action();
   };
 
-  const runClickAction = (id: string, action: () => void) => {
+  const runClickAction = (
+    event: ReactMouseEvent<HTMLButtonElement>,
+    id: string,
+    action: () => void
+  ) => {
+    void event;
+
     if (shouldSkipSyntheticClick(id)) return;
 
     action();
@@ -820,11 +819,19 @@ const TalkPage = () => {
     setIsCustomBoardsOpen(false);
   };
 
-  const handleWordTap = (tile: WordTile) => {
+  const handleWordTap = (
+    tile: WordTile,
+    options: { tactile?: boolean } = {}
+  ) => {
     if (isBlankTile(tile)) return;
 
-    triggerHaptic(8);
-    markPressed(tile.id);
+    const tactile = options.tactile ?? true;
+
+    if (tactile) {
+      triggerHaptic(8);
+      markPressed(tile.id);
+    }
+
     speakTileFast(tile.value);
 
     setSentenceWords((prev) => {
@@ -837,11 +844,17 @@ const TalkPage = () => {
     event: ReactPointerEvent<HTMLButtonElement>,
     tile: WordTile
   ) => {
-    runPointerAction(event, tile.id, () => handleWordTap(tile));
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    if (isBlankTile(tile)) return;
+
+    triggerHaptic(8);
+    markPressed(tile.id);
+    primeSpeechFast();
+    unlockTTSForUserGesture();
   };
 
   const handleWordClick = (tile: WordTile) => {
-    runClickAction(tile.id, () => handleWordTap(tile));
+    handleWordTap(tile, { tactile: false });
   };
 
   const handleNavTap = (tile: NavTile) => {
@@ -886,8 +899,17 @@ const TalkPage = () => {
     }
   };
 
-  const handleSentenceBarClick = () => {
+  const handleSentenceBarPointerDown = (
+    event: ReactPointerEvent<HTMLButtonElement>
+  ) => {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+
     triggerHaptic(8);
+    primeSpeechFast();
+    unlockTTSForUserGesture();
+  };
+
+  const handleSentenceBarClick = () => {
     speakText(displayedSentence);
   };
 
@@ -900,19 +922,12 @@ const TalkPage = () => {
   const handleHomeTap = () => {
     triggerHaptic(10);
     playSound("home");
-    markPressed("home");
 
-    if (homeNavigationTimerRef.current !== null) {
-      window.clearTimeout(homeNavigationTimerRef.current);
+    if (!db || !hasPin(db)) {
+      navigate("/home");
+    } else {
+      setShowPinOverlay(true);
     }
-
-    homeNavigationTimerRef.current = window.setTimeout(() => {
-      if (!db || !hasPin(db)) {
-        navigate("/home");
-      } else {
-        setShowPinOverlay(true);
-      }
-    }, 120);
   };
 
   const openCategoryMenu = () => {
@@ -1045,7 +1060,9 @@ const TalkPage = () => {
                 onPointerDown={(event) =>
                   runPointerAction(event, "boards-menu", handleBoardsTap)
                 }
-                onClick={() => runClickAction("boards-menu", handleBoardsTap)}
+                onClick={(event) =>
+                  runClickAction(event, "boards-menu", handleBoardsTap)
+                }
               >
                 <span className="talk-top-badge__icon" aria-hidden="true">
                   ★
@@ -1078,7 +1095,16 @@ const TalkPage = () => {
                       key={board.id}
                       type="button"
                       className="talk-custom-boards__item"
-                      onClick={() => handleLoadCustomBoard(board)}
+                      onPointerDown={(event) =>
+                        runPointerAction(event, `custom-board-${board.id}`, () =>
+                          handleLoadCustomBoard(board)
+                        )
+                      }
+                      onClick={(event) =>
+                        runClickAction(event, `custom-board-${board.id}`, () =>
+                          handleLoadCustomBoard(board)
+                        )
+                      }
                     >
                       <span>{board.name}</span>
                       <span className="talk-custom-boards__item-meta">
@@ -1098,7 +1124,9 @@ const TalkPage = () => {
                   onPointerDown={(event) =>
                     runPointerAction(event, "default-board", handleLoadDefaultBoard)
                   }
-                  onClick={() => runClickAction("default-board", handleLoadDefaultBoard)}
+                  onClick={(event) =>
+                    runClickAction(event, "default-board", handleLoadDefaultBoard)
+                  }
                 >
                   <span>Default Board</span>
                   <span className="talk-custom-boards__item-meta">
@@ -1117,7 +1145,16 @@ const TalkPage = () => {
                     visualMode === mode.id ? "is-active" : ""
                   }`}
                   aria-pressed={visualMode === mode.id}
-                  onClick={() => handleVisualModeChange(mode.id)}
+                  onPointerDown={(event) =>
+                    runPointerAction(event, `visual-mode-${mode.id}`, () =>
+                      handleVisualModeChange(mode.id)
+                    )
+                  }
+                  onClick={(event) =>
+                    runClickAction(event, `visual-mode-${mode.id}`, () =>
+                      handleVisualModeChange(mode.id)
+                    )
+                  }
                 >
                   {mode.label}
                 </button>
@@ -1127,14 +1164,14 @@ const TalkPage = () => {
 
           <button
             type="button"
-            className={`talk-top-badge talk-top-badge--home ${
-              lastPressedId === "home" ? "is-pressed" : ""
-            }`}
+            className="talk-top-badge talk-top-badge--home"
             aria-label="Go to home page"
             onPointerDown={(event) =>
-              runPointerAction(event, "home", handleHomeTap)
+              runPointerAction(event, "home-button", handleHomeTap)
             }
-            onClick={() => runClickAction("home", handleHomeTap)}
+            onClick={(event) =>
+              runClickAction(event, "home-button", handleHomeTap)
+            }
           >
             <img src={homeIcon} alt="" className="talk-top-badge__icon-img" />
             <span className="talk-top-badge__text">Home</span>
@@ -1144,10 +1181,8 @@ const TalkPage = () => {
         <button
           type="button"
           className={`talk-sentence-bar ${displayedSentence ? "" : "is-empty"}`}
-          onPointerDown={(event) =>
-            runPointerAction(event, "sentence-bar", handleSentenceBarClick)
-          }
-          onClick={() => runClickAction("sentence-bar", handleSentenceBarClick)}
+          onPointerDown={handleSentenceBarPointerDown}
+          onClick={handleSentenceBarClick}
           aria-label="Sentence bar"
         >
           {displayedSentence || "\u00A0"}
@@ -1168,9 +1203,11 @@ const TalkPage = () => {
                   isCategoryMenuOpen ? "is-open" : ""
                 }`}
                 onPointerDown={(event) =>
-                  runPointerAction(event, "category-menu", toggleCategoryMenu)
+                  runPointerAction(event, "category-trigger", toggleCategoryMenu)
                 }
-                onClick={() => runClickAction("category-menu", toggleCategoryMenu)}
+                onClick={(event) =>
+                  runClickAction(event, "category-trigger", toggleCategoryMenu)
+                }
                 onKeyDown={handleCategoryKeyDown}
                 aria-haspopup="listbox"
                 aria-expanded={isCategoryMenuOpen}
@@ -1197,7 +1234,16 @@ const TalkPage = () => {
                     } ${
                       highlightedCategoryIndex === index ? "is-highlighted" : ""
                     }`}
-                    onClick={() => handleCategorySelect(option.value)}
+                    onPointerDown={(event) =>
+                      runPointerAction(event, `category-${option.value}`, () =>
+                        handleCategorySelect(option.value)
+                      )
+                    }
+                    onClick={(event) =>
+                      runClickAction(event, `category-${option.value}`, () =>
+                        handleCategorySelect(option.value)
+                      )
+                    }
                     onMouseEnter={() => setHighlightedCategoryIndex(index)}
                   >
                     <span className="talk-filter__menu-text">
@@ -1240,7 +1286,9 @@ const TalkPage = () => {
                     onPointerDown={(event) =>
                       runPointerAction(event, "clear-search", handleClearSearch)
                     }
-                    onClick={() => runClickAction("clear-search", handleClearSearch)}
+                    onClick={(event) =>
+                      runClickAction(event, "clear-search", handleClearSearch)
+                    }
                     aria-label="Clear search"
                   >
                     ×
@@ -1276,9 +1324,11 @@ const TalkPage = () => {
                     lastPressedId === tile.id ? "is-pressed" : ""
                   } ${tile.disabled ? "is-disabled" : ""}`}
                   onPointerDown={(event) =>
-                    runPointerAction(event, tile.id, () => handleNavTap(tile))
+                    runPointerAction(event, `nav-${tile.id}`, () => handleNavTap(tile))
                   }
-                  onClick={() => runClickAction(tile.id, () => handleNavTap(tile))}
+                  onClick={(event) =>
+                    runClickAction(event, `nav-${tile.id}`, () => handleNavTap(tile))
+                  }
                   aria-label={tile.label}
                   aria-disabled={tile.disabled}
                 >
@@ -1343,16 +1393,31 @@ const TalkPage = () => {
                   control.action === "speak" ? "is-speak" : ""
                 } ${lastPressedId === control.id ? "is-pressed" : ""}`}
                 style={style}
-                onPointerDown={(event) =>
-                  runPointerAction(event, control.id, () =>
+                onPointerDown={(event) => {
+                  if (control.action === "speak") {
+                    if (event.pointerType === "mouse" && event.button !== 0) return;
+
+                    triggerHaptic(10);
+                    markPressed(control.id);
+                    primeSpeechFast();
+                    unlockTTSForUserGesture();
+                    return;
+                  }
+
+                  runPointerAction(event, `control-${control.id}`, () =>
                     handleControlAction(control.action, control.id)
-                  )
-                }
-                onClick={() =>
-                  runClickAction(control.id, () =>
+                  );
+                }}
+                onClick={(event) => {
+                  if (control.action === "speak") {
+                    handleControlAction(control.action, control.id);
+                    return;
+                  }
+
+                  runClickAction(event, `control-${control.id}`, () =>
                     handleControlAction(control.action, control.id)
-                  )
-                }
+                  );
+                }}
                 aria-label={control.label}
               >
                 <span className="talk-control-btn__icon">{control.icon}</span>
@@ -1381,20 +1446,21 @@ const TalkPage = () => {
           </div>
         </div>
       </div>
+
       {showPinOverlay && db && (
         <PinOverlay
           title="Admin Access"
           onCheck={(input) => checkPin(db, input)}
-          onSuccess={() => { setShowPinOverlay(false); navigate("/home"); }}
+          onSuccess={() => {
+            setShowPinOverlay(false);
+            navigate("/home");
+          }}
           onCancel={() => setShowPinOverlay(false)}
         />
       )}
 
       {showFirstLoad && db && (
-        <FirstLoadModal
-          db={db}
-          onDone={() => setShowFirstLoad(false)}
-        />
+        <FirstLoadModal db={db} onDone={() => setShowFirstLoad(false)} />
       )}
     </section>
   );

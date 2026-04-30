@@ -6,6 +6,7 @@ import {
   speakWithSettings,
   syncRuntimeTTSSettingsFromDB,
   primeTTSVoices,
+  unlockTTSForUserGesture,
 } from "./useTTSSettings";
 
 export function useAudioSettings() {
@@ -18,12 +19,26 @@ export function useAudioSettings() {
 
   useEffect(() => {
     primeTTSVoices();
+
+    const timerOne = window.setTimeout(() => {
+      primeTTSVoices();
+    }, 350);
+
+    const timerTwo = window.setTimeout(() => {
+      primeTTSVoices();
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(timerOne);
+      window.clearTimeout(timerTwo);
+    };
   }, []);
 
   useEffect(() => {
     if (!ready || !db) return;
 
     const saved = syncRuntimeTTSSettingsFromDB(db);
+
     setVolume(saved.volume);
     setRate(saved.rate);
     setVoiceURI(saved.voiceURI);
@@ -32,12 +47,16 @@ export function useAudioSettings() {
   function save() {
     if (!db) return;
 
+    unlockTTSForUserGesture();
     saveTTSSettingsToDB(db, { volume, rate, voiceURI });
+
     setSavedBadge(true);
-    setTimeout(() => setSavedBadge(false), 2000);
+    window.setTimeout(() => setSavedBadge(false), 2000);
   }
 
   function preview() {
+    unlockTTSForUserGesture();
+
     speakWithSettings(
       "Hello! This is how I will sound.",
       { volume, rate, voiceURI },

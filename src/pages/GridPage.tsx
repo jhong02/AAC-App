@@ -24,7 +24,7 @@ import {
 import arrowLeftIcon from "../assets/images/icons/arrow_left.png";
 import arrowRightIcon from "../assets/images/icons/arrow_right.png";
 import homeIcon from "../assets/images/icons/home.png";
-import pizzaIcon from "../assets/images/icons/pizza.png";
+import tempImageIcon from "../assets/images/icons/temp_image.png";
 
 import deleteSound from "../assets/sounds/delete.wav";
 import gridsettingsMoveTileSound from "../assets/sounds/gridsettings_move_tile.wav";
@@ -166,7 +166,7 @@ function writeDefaultBoardSnapshot(tiles: WordTile[], preset: GridPreset) {
 function defaultCustomDraft(): CustomDraft {
   return {
     label: "",
-    imageSrc: pizzaIcon,
+    imageSrc: tempImageIcon,
     fileName: "",
     category: "custom",
   };
@@ -179,7 +179,7 @@ function buildCustomTile(draft: CustomDraft): WordTile {
     id: `custom-${Date.now()}`,
     label: cleanedLabel,
     value: cleanedLabel.toLowerCase(),
-    icon: draft.imageSrc || pizzaIcon,
+    icon: draft.imageSrc || tempImageIcon,
     type: "word",
     category: draft.category,
   };
@@ -672,7 +672,7 @@ export default function GridPage() {
     const reader = new FileReader();
 
     reader.onload = () => {
-      const result = typeof reader.result === "string" ? reader.result : pizzaIcon;
+      const result = typeof reader.result === "string" ? reader.result : tempImageIcon;
 
       setCustomDraft((prev) => ({
         ...prev,
@@ -1740,7 +1740,7 @@ export default function GridPage() {
             >
               <div className="grid-custom-preview__icon">
                 <img
-                  src={customDraft.imageSrc || pizzaIcon}
+                  src={customDraft.imageSrc || tempImageIcon}
                   alt=""
                   className="grid-custom-preview__img"
                 />

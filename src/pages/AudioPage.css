@@ -28,6 +28,11 @@
     linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
     #bde8a8;
   background-size: 32px 32px, 32px 32px, auto;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18) 1px, transparent 1px),
+    #bde8a8;
+  background-size: 32px 32px, 32px 32px, auto;
   font-family: "Fredoka", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
@@ -64,6 +69,20 @@
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.14);
   cursor: pointer;
   z-index: 2;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, filter 80ms ease, box-shadow 80ms ease;
+}
+
+.audio-back-badge:hover {
+  filter: brightness(1.02);
+}
+
+.audio-back-badge:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
 }
 
 .audio-hero {
@@ -222,11 +241,19 @@
   justify-content: space-between;
   gap: 12px;
   cursor: pointer;
-  transition: transform 0.12s ease, filter 0.12s ease, border-color 0.12s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, filter 80ms ease, border-color 80ms ease;
 }
 
 .voice-option-btn:hover {
   filter: brightness(0.99);
+}
+
+.voice-option-btn:active {
+  transform: scale(0.98);
 }
 
 .voice-option-btn.selected {
@@ -265,7 +292,11 @@
   font-weight: 700;
   box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14);
   cursor: pointer;
-  transition: transform 0.14s ease, filter 0.14s ease;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, filter 80ms ease, box-shadow 80ms ease;
 }
 
 .audio-action-btn:hover {
@@ -273,7 +304,8 @@
 }
 
 .audio-action-btn:active {
-  transform: translateY(2px);
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
 }
 
 .audio-action-btn:disabled {
@@ -295,6 +327,115 @@
   background: var(--mint);
 }
 
+.audio-save-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(47, 68, 39, 0.38);
+  backdrop-filter: blur(4px);
+}
+
+.audio-save-modal__card {
+  width: min(420px, 100%);
+  padding: 28px 24px 24px;
+  box-sizing: border-box;
+  border: 4px solid var(--white);
+  border-radius: 28px;
+  background: #f8fff4;
+  color: var(--text-dark);
+  text-align: center;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.22);
+  animation: audio-modal-pop 150ms ease-out;
+}
+
+.audio-save-modal__icon {
+  width: 66px;
+  height: 66px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--white);
+  font-size: 2.3rem;
+  font-weight: 900;
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+.audio-save-modal__card h2 {
+  margin: 0 0 8px;
+  color: #35744b;
+  font-size: clamp(1.55rem, 4vw, 2rem);
+  line-height: 1;
+}
+
+.audio-save-modal__card p {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 1rem;
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.audio-save-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.audio-save-modal__btn {
+  min-height: 52px;
+  border: 3px solid var(--white);
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.14);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, filter 80ms ease, box-shadow 80ms ease;
+}
+
+.audio-save-modal__btn:hover {
+  filter: brightness(1.02);
+}
+
+.audio-save-modal__btn:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.14);
+}
+
+.audio-save-modal__btn.is-home {
+  background: var(--home-blue);
+  color: var(--white);
+}
+
+.audio-save-modal__btn.is-close {
+  background: #fff2c7;
+  color: #8a6800;
+}
+
+@keyframes audio-modal-pop {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 700px) {
   .audio-page {
     padding: 10px;
@@ -305,7 +446,8 @@
     padding: 12px;
   }
 
-  .audio-actions {
+  .audio-actions,
+  .audio-save-modal__actions {
     grid-template-columns: 1fr;
   }
 
