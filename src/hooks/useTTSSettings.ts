@@ -29,7 +29,7 @@ function hasSpeechSupport(): boolean {
 
 function clampSettings(settings: TTSSettings): TTSSettings {
   return {
-    volume: Math.min(100, Math.max(0, Number(settings.volume) || 80)),
+    volume: Math.min(100, Math.max(0, isNaN(Number(settings.volume)) ? 80 : Number(settings.volume))),
     rate: Math.min(1.75, Math.max(0.5, Number(settings.rate) || 1)),
     voiceURI: settings.voiceURI || "",
   };
