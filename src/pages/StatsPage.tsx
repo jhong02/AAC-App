@@ -118,6 +118,7 @@ export default function StatsPage() {
     if (days > 0) parts.push(`${days} day${days > 1 ? "s" : ""}`);
     if (hours > 0) parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
     if (minutes > 0) parts.push(`${minutes} minute${minutes > 1 ? "s" : ""}`);
+
     if (seconds > 0 || parts.length === 0) {
       parts.push(`${seconds} second${seconds > 1 ? "s" : ""}`);
     }
@@ -206,14 +207,14 @@ export default function StatsPage() {
 
       const now = Date.now();
 
-      const sessionTime = filteredSessions.reduce((total, s) => {
-        const end = s.ended_at ?? now;
+      const sessionTime = filteredSessions.reduce((total, session) => {
+        const end = session.ended_at ?? now;
 
-        if (!s.ended_at && now - s.started_at > 1000 * 60 * 60) {
+        if (!session.ended_at && now - session.started_at > 1000 * 60 * 60) {
           return total;
         }
 
-        const duration = end - s.started_at;
+        const duration = end - session.started_at;
 
         return total + Math.max(0, duration);
       }, 0);
@@ -355,7 +356,10 @@ export default function StatsPage() {
                 const chartWidth = 300 - margin.left - margin.right;
                 const chartHeight = 140 - margin.top - margin.bottom;
                 const baseY = margin.top + chartHeight;
-                const step = chartWidth / visibleData.length;
+                const step =
+                  visibleData.length > 0
+                    ? chartWidth / visibleData.length
+                    : chartWidth;
 
                 const fontTitle = 8;
                 const fontLabel = 4;
@@ -601,15 +605,17 @@ export default function StatsPage() {
               <p>No data yet</p>
             ) : (
               <div className="bar-chart">
-                {safeStats.topWords.map((w: any, i: number) => {
+                {safeStats.topWords.map((word: any, i: number) => {
                   const max = safeStats.topWords[0]?.count || 1;
-                  const width = (w.count / max) * 100;
+                  const width = (word.count / max) * 100;
 
                   return (
                     <div key={i} className="bar-row">
                       <span className="bar-label">
-                        {w.word}{" "}
-                        <span className="bar-category">({w.category})</span>
+                        {word.word}{" "}
+                        <span className="bar-category">
+                          ({word.category})
+                        </span>
                       </span>
 
                       <div className="bar-track">
@@ -619,7 +625,7 @@ export default function StatsPage() {
                         />
                       </div>
 
-                      <span className="bar-count">{w.count}</span>
+                      <span className="bar-count">{word.count}</span>
                     </div>
                   );
                 })}
@@ -634,13 +640,13 @@ export default function StatsPage() {
               <p>No data yet</p>
             ) : (
               <div className="bar-chart">
-                {safeStats.categories.map((c: any, i: number) => {
+                {safeStats.categories.map((category: any, i: number) => {
                   const max = safeStats.categories[0]?.count || 1;
-                  const width = (c.count / max) * 100;
+                  const width = (category.count / max) * 100;
 
                   return (
                     <div key={i} className="bar-row">
-                      <span className="bar-label">{c.category}</span>
+                      <span className="bar-label">{category.category}</span>
 
                       <div className="bar-track">
                         <div
@@ -649,7 +655,7 @@ export default function StatsPage() {
                         />
                       </div>
 
-                      <span className="bar-count">{c.count}</span>
+                      <span className="bar-count">{category.count}</span>
                     </div>
                   );
                 })}
@@ -690,7 +696,10 @@ export default function StatsPage() {
                   One-time download — approximately 1.5 GB. Requires wifi.
                 </p>
 
-                <button className="ai-generate-btn" onClick={handleStartDownload}>
+                <button
+                  className="ai-generate-btn"
+                  onClick={handleStartDownload}
+                >
                   Download AI Model
                 </button>
               </div>
@@ -719,7 +728,10 @@ export default function StatsPage() {
                   Something went wrong. Please try again.
                 </p>
 
-                <button className="ai-generate-btn" onClick={handleStartDownload}>
+                <button
+                  className="ai-generate-btn"
+                  onClick={handleStartDownload}
+                >
                   Retry Download
                 </button>
               </div>
@@ -754,7 +766,10 @@ export default function StatsPage() {
 
                 <div className="ai-section">
                   <h3>Growth</h3>
-                  <p>{insight.growth || "Not enough history yet to show growth."}</p>
+                  <p>
+                    {insight.growth ||
+                      "Not enough history yet to show growth."}
+                  </p>
                 </div>
 
                 <div className="ai-section">

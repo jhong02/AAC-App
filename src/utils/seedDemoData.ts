@@ -39,8 +39,6 @@ const WORD_POOL: { word: string; category: string; weight: number }[] = [
   { word: "sleep",   category: "verb",       weight: 2  },
 ];
 
-const TOTAL_WEIGHT = WORD_POOL.reduce((s, w) => s + w.weight, 0);
-
 function weightedRandomWord(progress: number): typeof WORD_POOL[0] {
   // As progress increases (0→1 over 2 years), slightly increase variety
   // by boosting lower-weight words

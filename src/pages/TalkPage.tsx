@@ -1123,7 +1123,11 @@ const TalkPage = () => {
                     activeBoardKind === "default" ? "is-active" : ""
                   }`}
                   onPointerDown={(event) =>
-                    runPointerAction(event, "default-board", handleLoadDefaultBoard)
+                    runPointerAction(
+                      event,
+                      "default-board",
+                      handleLoadDefaultBoard
+                    )
                   }
                   onClick={(event) =>
                     runClickAction(event, "default-board", handleLoadDefaultBoard)
@@ -1325,10 +1329,14 @@ const TalkPage = () => {
                     lastPressedId === tile.id ? "is-pressed" : ""
                   } ${tile.disabled ? "is-disabled" : ""}`}
                   onPointerDown={(event) =>
-                    runPointerAction(event, `nav-${tile.id}`, () => handleNavTap(tile))
+                    runPointerAction(event, `nav-${tile.id}`, () =>
+                      handleNavTap(tile)
+                    )
                   }
                   onClick={(event) =>
-                    runClickAction(event, `nav-${tile.id}`, () => handleNavTap(tile))
+                    runClickAction(event, `nav-${tile.id}`, () =>
+                      handleNavTap(tile)
+                    )
                   }
                   aria-label={tile.label}
                   aria-disabled={tile.disabled}
@@ -1396,7 +1404,9 @@ const TalkPage = () => {
                 style={style}
                 onPointerDown={(event) => {
                   if (control.action === "speak") {
-                    if (event.pointerType === "mouse" && event.button !== 0) return;
+                    if (event.pointerType === "mouse" && event.button !== 0) {
+                      return;
+                    }
 
                     triggerHaptic(10);
                     markPressed(control.id);
