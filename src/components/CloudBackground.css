@@ -1,0 +1,70 @@
+/* Cloud Background Styles */
+
+#root {
+  position: relative;
+  z-index: 0;
+}
+
+/* Cloud Layer */
+.cloud-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Cloud Shape */
+.cloud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  animation: cloudMove linear infinite;
+
+}
+
+.cloud-inner {
+  width: 180px;
+  height: 80px;
+
+  /*background: linear-gradient(to bottom, #ffffff, #f0f0f0);*/
+  background: white;
+  border-radius: 999px;
+
+  /*box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.1), inset 5px 5px 10px*/
+  box-shadow:
+    40px 10px 0 0 white,
+    80px 20px 0 0 white,
+    120px 10px 0 0 white,
+    60px -10px 0 0 white;
+
+  opacity: 0.85;
+  filter: blur(0.3px);
+}
+
+.cloud.right {
+  animation-name: cloudMove;
+}
+
+.cloud.left {
+  animation-name: cloudMoveLeft;
+}
+
+/* Cloud Movement Animation */
+@keyframes cloudMove {
+  0% {
+    transform: translateX(-250px);
+  }
+  100% {
+    transform: translateX(110vw);
+  }
+}
+
+@keyframes cloudMoveLeft {
+    0% {
+        transform: translateX(110vw);
+    }
+    100% {
+        transform: translateX(-250px);
+    }
+}
