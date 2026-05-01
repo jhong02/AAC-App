@@ -1356,7 +1356,7 @@ export default function GridPage() {
 
           <button
             type="button"
-            className="grid-settings-home-badge"
+            className="grid-settings-top-action is-pin"
             onClick={handleChangePinBtn}
           >
             🔒︎ Change PIN
