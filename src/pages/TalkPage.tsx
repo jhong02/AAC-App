@@ -878,6 +878,7 @@ const TalkPage = () => {
       case "undo":
         playSound("undo");
         setSentenceWords((prev) => prev.slice(0, -1));
+        clearPrediction();
         break;
 
       case "clear":
