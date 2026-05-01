@@ -753,18 +753,18 @@ export default function StatsPage() {
                 </div>
 
                 <div className="ai-section">
-                  <h3>Sentence Complexity</h3>
-                  <p>{insight.sentenceComplexity || "No data available."}</p>
-                </div>
-
-                <div className="ai-section">
-                  <h3>Lag Time</h3>
-                  <p>{insight.lagTime || "No data available."}</p>
+                  <h3>Growth</h3>
+                  <p>{insight.growth || "Not enough history yet to show growth."}</p>
                 </div>
 
                 <div className="ai-section">
                   <h3>Word Suggestions</h3>
                   <p>{insight.wordSuggestions || "No data available."}</p>
+                </div>
+
+                <div className="ai-section">
+                  <h3>Lag Time</h3>
+                  <p>{insight.lagTime || "No data available."}</p>
                 </div>
 
                 {modelStatus === "ready" && (

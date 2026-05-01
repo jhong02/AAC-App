@@ -832,7 +832,7 @@ const TalkPage = () => {
       markPressed(tile.id);
     }
 
-    // speakTileFast(tile.value); // disabled — tiles no longer speak on tap
+    speakTileFast(tile.value);
 
     setSentenceWords((prev) => {
       logTap(tile.value, prev.length);

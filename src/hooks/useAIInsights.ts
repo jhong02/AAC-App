@@ -27,8 +27,6 @@ import {
 
 const PROFILE_ID = "default_profile";
 
-// Average AAC user benchmark for sentence complexity comparison
-const AAC_AVG_SENTENCE_LENGTH = 2.5;
 
 export type Timeframe = "day" | "week" | "month" | "year" | "total";
 
@@ -102,20 +100,33 @@ function timeLabel(timeframe: Timeframe): string {
 
 // ─── Prompts ───────────────────────────────────────────────────────
 
-function summaryPrompt(
+// Summary generated directly in code — no AI needed
+function generateSummaryText(
   period: string,
   totalWords: number,
   topWords: any[],
   topCategory: string,
-  topCategoryPct: number
+  topCategoryPct: number,
+  totalSessions: number
 ): string {
+  if (totalWords === 0) return `No communication data recorded for ${period}.`;
+
   const top3 = topWords.slice(0, 3)
-    .map((w: any) => `${w.word} (${w.count} taps)`)
+    .map((w: any) => {
+      const pct = totalWords > 0 ? Math.round((w.count / totalWords) * 100) : 0;
+      return `${w.word} (${pct}%)`;
+    })
     .join(", ");
 
-  return `Write 1 to 3 plain sentences summarizing AAC communication for ${period}. State the total words tapped, the top 3 words used, and note that ${topCategory} was the dominant category at ${topCategoryPct}%. Briefly interpret what this suggests about communication patterns. No markdown. No lists. No introduction.
+  const avgPerSession = totalSessions > 0
+    ? Math.round(totalWords / totalSessions)
+    : totalWords;
 
-Data: ${totalWords} total words. Top words: ${top3}. Dominant category: ${topCategory} (${topCategoryPct}%).`;
+  let text = `Over ${period}, ${totalWords} words were tapped across ${totalSessions} session${totalSessions !== 1 ? "s" : ""}, averaging ${avgPerSession} words per session.`;
+  text += ` The top 3 most used words were ${top3}.`;
+  text += ` The ${topCategory} category dominated at ${topCategoryPct}% of all taps.`;
+
+  return text;
 }
 
 function growthPrompt(
@@ -266,12 +277,12 @@ export function useAIInsights(timeframe: Timeframe): UseAIInsightsResult {
         generatedAt:       Date.now(),
       };
 
-      // Word suggestions generated directly — no AI needed
+      // Summary and word suggestions generated directly in code — no AI hallucination risk
+      const summary         = generateSummaryText(label, totalWords, topWords, topCat?.category ?? "unknown", topCatPct, totalSessions);
       const wordSuggestions = generateWordSuggestionsText(categories, unusedWords, totalCatTaps);
 
-      // Three AI calls in parallel for the remaining sections
-      const [summary, growth, lagTime] = await Promise.all([
-        generateInsight(summaryPrompt(label, totalWords, topWords, topCat?.category ?? "unknown", topCatPct)),
+      // Two AI calls in parallel for Growth and Lag Time
+      const [growth, lagTime] = await Promise.all([
         generateInsight(growthPrompt(label, currentSnapshot, prevSnapshot)),
         generateInsight(lagTimePrompt(label, hesitationRate, avgMs, prevSnapshot?.hesitationRate ?? null)),
       ]);
